@@ -19,17 +19,7 @@
 
 ## فارسی
 
-### این پروژه چیه؟
-
-Hamidix یه فروشگاه اینترنتیه که برای فروش دوربین مداربسته، دستگاه‌های ضبط DVR و NVR، دزدگیر
-و لوازم جانبی کامپیوتر ساختمش. اولش چند تا صفحه‌ی HTML ساده بود که محصولات دستی توشون نوشته
-می‌شد و با هر تغییر قیمت باید کد رو عوض می‌کردیم. بعد کل پروژه رو با جنگو از نو نوشتم تا
-محصولات، سفارش‌ها و کاربرها از پنل مدیریت کنترل بشن و دیگه لازم نباشه برای هر تغییر کوچیک
-دست به کد بزنیم.
-
-الان سایت همه‌ی چیزهایی که یه فروشگاه واقعی لازم داره رو داره: دسته‌بندی و فیلتر محصولات،
-سبد خرید، کد تخفیف، ثبت سفارش، پرداخت آنلاین و پنل کاربری. مدیر فروشگاه هم همه‌چیز رو از
-پنل مدیریت فارسی کنترل می‌کنه.
+سایت فروش آنلاین دوربین مداربسته و لوازم جانبی.
 
 ### امکانات
 
@@ -213,15 +203,7 @@ deploy.py   incremental deploy script
 
 ## English
 
-### What is this?
-
-Hamidix is an online store I built for selling CCTV cameras, DVR and NVR recorders, burglar alarms
-and computer accessories. It started as a handful of static HTML pages where every product was
-typed in by hand, so each price change meant editing code. I rewrote the whole thing in Django so
-products, orders and customers are managed from an admin panel instead.
-
-It now covers what a real shop needs: categories and filters, a cart, discount codes, checkout,
-online payment and a customer dashboard. The store owner runs everything from a Persian admin panel.
+Online store for CCTV cameras and accessories.
 
 ### Features
 
