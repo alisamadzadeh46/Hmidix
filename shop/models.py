@@ -172,12 +172,23 @@ class Product(models.Model):
         if not self.slug:
             base = slugify(self.model_code or self.name, allow_unicode=True)
             self.slug = base or slugify(self.name, allow_unicode=True)
+        # Keep the status in line with stock: sold out at zero, and available
+        # again once a sold-out product is restocked. A product marked out of
+        # stock by hand while it still has stock is left alone.
         if self.stock == 0:
             self.status = self.STATUS_OUT
+        elif self.status == self.STATUS_OUT and self._was_sold_out():
+            self.status = self.STATUS_ACTIVE
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse('shop:product_detail', kwargs={'slug': self.slug})
+
+    def _was_sold_out(self):
+        """Return True if the saved version of this product had no stock."""
+        if self.pk is None:
+            return False
+        return Product.objects.filter(pk=self.pk, stock=0).exists()
 
     @property
     def discount_percent(self):

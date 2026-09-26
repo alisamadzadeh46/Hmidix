@@ -149,6 +149,10 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 PASSWORD_RESET_TIMEOUT = 1800  # 30 minutes
 
+# Login brute-force protection (see accounts/throttle.py)
+LOGIN_MAX_ATTEMPTS = int(os.environ.get('LOGIN_MAX_ATTEMPTS', 5))
+LOGIN_LOCKOUT_SECONDS = int(os.environ.get('LOGIN_LOCKOUT_SECONDS', 15 * 60))
+
 
 # Password validation
 

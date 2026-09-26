@@ -15,6 +15,7 @@ from django.views.generic import (
 
 from core.http import safe_redirect_url
 
+from . import throttle
 from .forms import AddressForm, LoginForm, ProfileForm, RegisterForm
 
 
@@ -40,16 +41,20 @@ class AuthView(FormView):
     def _handle_login(self, request):
         form = LoginForm(request.POST)
         if form.is_valid():
-            user = authenticate(
-                request,
-                phone=form.cleaned_data['phone'],
-                password=form.cleaned_data['password'],
-            )
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'خوش آمدید {user.get_short_name()}')
-                return self._redirect_after_login(request)
-            form.add_error(None, 'شماره تلفن یا رمز عبور اشتباه است.')
+            phone = form.cleaned_data['phone']
+            if throttle.is_locked(phone):
+                form.add_error(None, 'تعداد تلاش‌های ناموفق زیاد بود. '
+                                     'لطفاً چند دقیقه دیگر دوباره امتحان کنید.')
+            else:
+                user = authenticate(request, phone=phone,
+                                    password=form.cleaned_data['password'])
+                if user is not None:
+                    throttle.reset(phone)
+                    login(request, user)
+                    messages.success(request, f'خوش آمدید {user.get_short_name()}')
+                    return self._redirect_after_login(request)
+                throttle.register_failure(phone)
+                form.add_error(None, 'شماره تلفن یا رمز عبور اشتباه است.')
         return self.render_to_response(
             self.get_context_data(login_form=form, active_tab='login')
         )

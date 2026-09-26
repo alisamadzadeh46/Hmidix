@@ -8,6 +8,9 @@ the server. Connection details are read from the environment (or the local
     DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER, DEPLOY_REMOTE_ROOT, DEPLOY_SERVICE
     DEPLOY_KEY_FILE   path to a private key (preferred), or
     DEPLOY_PASSWORD   password authentication as a fallback
+    DEPLOY_TRUST_NEW_HOST
+                      set to "true" once to accept and remember the server's
+                      host key; afterwards unknown keys are rejected
 
 Requires ``paramiko`` (a deploy-time dependency only).
 """
@@ -30,6 +33,8 @@ KEY_FILE = os.environ.get('DEPLOY_KEY_FILE') or None
 PASSWORD = os.environ.get('DEPLOY_PASSWORD') or None
 REMOTE_ROOT = os.environ.get('DEPLOY_REMOTE_ROOT', '/var/www/hamidix').rstrip('/')
 SERVICE = os.environ.get('DEPLOY_SERVICE', 'hamidix')
+TRUST_NEW_HOST = os.environ.get('DEPLOY_TRUST_NEW_HOST', '').lower() in ('1', 'true', 'yes')
+KNOWN_HOSTS = Path.home() / '.ssh' / 'known_hosts'
 MANIFEST_PATH = Path.home() / '.deploy_manifest_hamidix.json'
 
 SKIP_DIRS = {
@@ -92,8 +97,20 @@ def main():
 
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(HOST, PORT, USER, password=PASSWORD, key_filename=KEY_FILE, timeout=30)
+    # Refuse unknown servers (protects against man-in-the-middle attacks)
+    # unless the first connection is explicitly trusted.
+    if TRUST_NEW_HOST:
+        KNOWN_HOSTS.parent.mkdir(mode=0o700, exist_ok=True)
+        KNOWN_HOSTS.touch(mode=0o600, exist_ok=True)
+        ssh.load_host_keys(str(KNOWN_HOSTS))
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    else:
+        ssh.set_missing_host_key_policy(paramiko.RejectPolicy())
+    try:
+        ssh.connect(HOST, PORT, USER, password=PASSWORD, key_filename=KEY_FILE, timeout=30)
+    except paramiko.SSHException as exc:
+        sys.exit(f'SSH connection failed: {exc}\n'
+                 'For a new server, run once with DEPLOY_TRUST_NEW_HOST=true.')
     sftp = ssh.open_sftp()
 
     def remote_makedirs(remote_path):

@@ -248,9 +248,7 @@ class PaymentVerifyView(View):
             messages.error(request, f'تأیید پرداخت ناموفق بود: {error}')
             return redirect(order)
 
-        order.status = Order.STATUS_PAID
-        order.ref_id = ref_id
-        order.save(update_fields=['status', 'ref_id'])
+        order.mark_paid(ref_id)
         messages.success(request, f'پرداخت موفق! شماره پیگیری: {ref_id}')
         return redirect(order)
 

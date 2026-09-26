@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.cache import cache
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from shop.tests.factories import make_user
@@ -72,3 +73,31 @@ class RegisterTests(TestCase):
         self.register('a-Strong-pass-42')
         self.assertTrue(get_user_model().objects.filter(phone='09120000009').exists())
         self.assertIn('_auth_user_id', self.client.session)
+
+
+@override_settings(LOGIN_MAX_ATTEMPTS=3)
+class LoginThrottleTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        make_user(phone='09120000001', password='secret123')
+        self.url = reverse('accounts:login')
+
+    def attempt(self, password):
+        self.client.post(self.url, {
+            'action': 'login', 'phone': '09120000001', 'password': password,
+        })
+        return '_auth_user_id' in self.client.session
+
+    def test_phone_is_locked_after_repeated_failures(self):
+        for _ in range(3):
+            self.assertFalse(self.attempt('wrong'))
+        # Even the correct password is refused while the lock is active.
+        self.assertFalse(self.attempt('secret123'))
+
+    def test_successful_login_resets_counter(self):
+        self.attempt('wrong')
+        self.attempt('wrong')
+        self.assertTrue(self.attempt('secret123'))
+        self.client.logout()
+        self.attempt('wrong')
+        self.assertTrue(self.attempt('secret123'))

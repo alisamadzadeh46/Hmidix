@@ -23,3 +23,15 @@ class ProductPriceTests(TestCase):
 
     def test_discount_percent(self):
         self.assertEqual(make_product(price=75, old_price=100).discount_percent, 25)
+
+    def test_restocked_product_becomes_available(self):
+        product = make_product(stock=0)
+        product.stock = 5
+        product.save()
+        self.assertEqual(product.status, Product.STATUS_ACTIVE)
+
+    def test_manual_out_of_stock_is_kept_while_in_stock(self):
+        product = make_product(stock=5)
+        product.status = Product.STATUS_OUT
+        product.save()
+        self.assertEqual(product.status, Product.STATUS_OUT)

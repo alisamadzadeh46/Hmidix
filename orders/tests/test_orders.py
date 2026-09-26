@@ -3,6 +3,7 @@ from django.urls import reverse
 
 from accounts.models import User
 from orders.models import Coupon, Order
+from shop.models import Product
 from shop.tests.factories import make_product, make_user
 
 
@@ -99,6 +100,20 @@ class CheckoutAndPaymentTests(TestCase):
         order.refresh_from_db()
         self.assertEqual(order.status, Order.STATUS_PAID)
         self.assertEqual(order.ref_id, 123456)
+
+    def test_payment_deducts_stock_once(self):
+        self.product.stock = 2
+        self.product.save()
+        self.checkout()
+        order = Order.objects.get()
+        self.client.get(reverse('orders:payment_start', args=[order.pk]))
+        verify_url = reverse('orders:payment_verify', args=[order.pk])
+        self.client.get(verify_url, {'Status': 'OK', 'Authority': 'AUTH-1'})
+        self.client.get(verify_url, {'Status': 'OK', 'Authority': 'AUTH-1'})
+
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 0)
+        self.assertEqual(self.product.status, Product.STATUS_OUT)
 
     def test_verify_rejects_authority_of_another_order(self):
         self.checkout()

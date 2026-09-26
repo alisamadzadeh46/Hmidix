@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
+from django.db.models import Case, F, Value, When
 from django.urls import reverse
 from django.utils import timezone
 
@@ -112,6 +113,33 @@ class Order(models.Model):
     @property
     def items_total(self):
         return sum(item.line_total for item in self.items.all())
+
+    @transaction.atomic
+    def mark_paid(self, ref_id):
+        """Mark the order as paid and deduct the purchased items from stock.
+
+        The row is locked so two concurrent gateway callbacks cannot deduct the
+        stock twice. Returns False if the order had already been paid.
+        """
+        order = Order.objects.select_for_update().get(pk=self.pk)
+        if order.status == self.STATUS_PAID:
+            return False
+
+        for item in order.items.exclude(product=None):
+            # Subtract only when the result stays positive: stock is an
+            # unsigned column on MySQL, where a negative result is an error.
+            Product.objects.filter(pk=item.product_id).update(stock=Case(
+                When(stock__gt=item.quantity, then=F('stock') - item.quantity),
+                default=Value(0),
+            ))
+        Product.objects.filter(
+            pk__in=order.items.values('product_id'), stock=0,
+        ).update(status=Product.STATUS_OUT)
+
+        self.status = order.status = self.STATUS_PAID
+        self.ref_id = order.ref_id = ref_id
+        order.save(update_fields=['status', 'ref_id'])
+        return True
 
     def recalculate_total(self):
         """Recompute ``total`` from the items and discount (does not save)."""
