@@ -90,6 +90,20 @@
         dots.forEach(function (d) {
             d.addEventListener('click', function () { show(parseInt(d.dataset.index, 10)); reset(); });
         });
+
+        // Swipe support for touch screens (arrows are hidden on phones).
+        const rtl = getComputedStyle(slider).direction === 'rtl';
+        let touchX = null;
+        slider.addEventListener('touchstart', function (e) { touchX = e.touches[0].clientX; }, { passive: true });
+        slider.addEventListener('touchend', function (e) {
+            if (touchX === null) return;
+            const dx = e.changedTouches[0].clientX - touchX;
+            touchX = null;
+            if (Math.abs(dx) < 40) return;
+            // In a right-to-left layout the next slide comes from the left.
+            if ((dx > 0) === rtl) next(); else prev();
+            reset();
+        });
         start();
     }
 

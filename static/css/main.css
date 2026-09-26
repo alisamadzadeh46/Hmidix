@@ -1192,7 +1192,8 @@ img { max-width: 100%; height: auto; display: block; }
 @media (max-width: 600px) {
     .logo img { height: 36px; }
     .banner-row { grid-template-columns: 1fr; }
-    .slider-btn { width: 34px; height: 34px; font-size: 13px; }
+    /* Arrows cover the banner text on phones; the slider is swiped instead. */
+    .slider-btn { display: none; }
 
     /* Two-row mobile header */
     .header-main { padding: 10px 0 8px; }
