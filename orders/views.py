@@ -37,8 +37,12 @@ class CartAddView(View):
 
     def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
+        msg = None
         if product.call_for_price:
             msg = 'برای ثبت سفارش این محصول لطفاً با ما تماس بگیرید.'
+        elif not product.in_stock:
+            msg = 'این محصول در حال حاضر موجود نیست.'
+        if msg:
             if is_ajax(request):
                 return JsonResponse({'error': msg}, status=400)
             messages.warning(request, msg)

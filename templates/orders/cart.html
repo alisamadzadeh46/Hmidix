@@ -22,7 +22,7 @@
                 </a>
                 <div class="cart-line-body">
                     <a href="{{ item.product.get_absolute_url }}" class="cart-line-name">{{ item.product.name }}</a>
-                    <div class="cart-line-price">{{ item.product.price|currency|fa_num }} ریال</div>
+                    <div class="cart-line-price">{{ item.unit_price|currency|fa_num }} ریال</div>
                 </div>
                 <div class="cart-line-actions">
                     <form method="post" action="{% url 'orders:cart_update' item.product.pk %}" class="cart-qty-form">

@@ -29,7 +29,7 @@
                     </div>
                     <button type="submit" class="btn btn-block">ادامه و پرداخت <i class="fas fa-arrow-left"></i></button>
                 </form>
-                <a href="{% url 'accounts:address_add' %}?next=/checkout/" class="add-address-link">
+                <a href="{% url 'accounts:address_add' %}?next={% url 'orders:checkout' %}" class="add-address-link">
                     <i class="fas fa-plus-circle"></i> افزودن آدرس جدید
                 </a>
             </div>
@@ -39,7 +39,7 @@
                 <i class="fas fa-map-marker-alt no-address-icon"></i>
                 <h3>آدرسی ثبت نشده</h3>
                 <p>برای تکمیل خرید، ابتدا یک آدرس تحویل اضافه کنید.</p>
-                <a href="{% url 'accounts:address_add' %}?next=/checkout/" class="btn">
+                <a href="{% url 'accounts:address_add' %}?next={% url 'orders:checkout' %}" class="btn">
                     <i class="fas fa-plus"></i> افزودن آدرس
                 </a>
             </div>

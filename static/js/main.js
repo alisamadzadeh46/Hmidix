@@ -31,7 +31,12 @@
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken() },
             })
-            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                return r.json().then(function (data) {
+                    if (!r.ok) throw new Error(data.error || 'request failed');
+                    return data;
+                });
+            })
             .then(function (data) {
                 const counter = document.getElementById('cartCount');
                 if (counter && typeof data.count !== 'undefined') counter.textContent = data.count;

@@ -1,6 +1,7 @@
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from accounts.models import User
 from orders.models import Coupon, Order
 from shop.tests.factories import make_product, make_user
 
@@ -30,6 +31,26 @@ class CartTests(TestCase):
         product = make_product()
         self.client.post(reverse('orders:cart_add', args=[product.pk]), {'quantity': 'x'})
         self.assertEqual(self.client.session['cart'], {str(product.pk): 1})
+
+    def test_out_of_stock_product_cannot_be_added(self):
+        product = make_product(stock=0)
+        response = self.client.post(reverse('orders:cart_add', args=[product.pk]),
+                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(self.client.session.get('cart', {}), {})
+
+    def test_quantity_is_capped_to_stock(self):
+        product = make_product(stock=3)
+        self.client.post(reverse('orders:cart_add', args=[product.pk]), {'quantity': 10})
+        self.assertEqual(self.client.session['cart'], {str(product.pk): 3})
+
+    def test_cart_shows_colleague_unit_price(self):
+        product = make_product(price=1000, colleague_price=800)
+        self.client.force_login(make_user(role=User.ROLE_COLLEAGUE))
+        self.client.post(reverse('orders:cart_add', args=[product.pk]))
+        html = self.client.get(reverse('orders:cart')).content.decode()
+        self.assertIn('۸۰۰ ریال', html)
+        self.assertNotIn('۱،۰۰۰ ریال', html)
 
     def test_call_for_price_product_cannot_be_added(self):
         product = make_product(call_for_price=True)

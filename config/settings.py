@@ -237,7 +237,6 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', False)
     SESSION_COOKIE_SECURE = env_bool('SESSION_COOKIE_SECURE', True)
     CSRF_COOKIE_SECURE = env_bool('CSRF_COOKIE_SECURE', True)
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
     # The JS reads the CSRF token from the <meta> tag, so the cookie itself can
     # stay out of reach of scripts.

@@ -20,22 +20,33 @@ class Cart:
         if cart is None:
             cart = self.session[CART_SESSION_KEY] = {}
         self.cart = cart
+        self._products = None
 
     def unit_price(self, product):
         """Role-aware unit price (colleague price for colleague users)."""
         price = product.price_for(self.user)
         return price if price is not None else product.price
 
+    def _get_products(self):
+        """Products currently in the cart, fetched once per request."""
+        if self._products is None:
+            self._products = list(Product.objects.filter(pk__in=self.cart.keys()))
+        return self._products
+
     def save(self):
         self.session[CART_SESSION_KEY] = self.cart
         self.session.modified = True
+        self._products = None  # contents changed; reload on next access
 
     def add(self, product, quantity=1, replace=False):
+        """Add ``quantity`` of a product (or set it when ``replace``), capped to stock."""
         pid = str(product.pk)
-        current = self.cart.get(pid, 0)
-        self.cart[pid] = quantity if replace else current + quantity
-        if self.cart[pid] <= 0:
+        new_quantity = quantity if replace else self.cart.get(pid, 0) + quantity
+        new_quantity = min(new_quantity, product.stock)
+        if new_quantity <= 0:
             self.cart.pop(pid, None)
+        else:
+            self.cart[pid] = new_quantity
         self.save()
 
     def set_quantity(self, product, quantity):
@@ -56,8 +67,7 @@ class Cart:
         self.session.modified = True
 
     def __iter__(self):
-        products = Product.objects.filter(pk__in=self.cart.keys())
-        for product in products:
+        for product in self._get_products():
             quantity = self.cart[str(product.pk)]
             unit_price = self.unit_price(product)
             yield {
@@ -72,8 +82,7 @@ class Cart:
 
     @property
     def subtotal(self):
-        products = Product.objects.filter(pk__in=self.cart.keys())
-        return sum(self.unit_price(p) * self.cart[str(p.pk)] for p in products)
+        return sum(self.unit_price(p) * self.cart[str(p.pk)] for p in self._get_products())
 
     # ---- Coupon handling ----
     def apply_coupon(self, coupon):

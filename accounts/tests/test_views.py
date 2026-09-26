@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
@@ -54,3 +55,20 @@ class LogoutTests(TestCase):
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('shop:home'), fetch_redirect_response=False)
         self.assertNotIn('_auth_user_id', self.client.session)
+
+
+class RegisterTests(TestCase):
+    def register(self, password):
+        return self.client.post(reverse('accounts:login'), {
+            'action': 'register', 'full_name': 'New User', 'phone': '09120000009',
+            'email': 'new@example.com', 'password': password,
+        })
+
+    def test_common_password_is_rejected(self):
+        self.register('123456')
+        self.assertFalse(get_user_model().objects.filter(phone='09120000009').exists())
+
+    def test_valid_registration_logs_user_in(self):
+        self.register('a-Strong-pass-42')
+        self.assertTrue(get_user_model().objects.filter(phone='09120000009').exists())
+        self.assertIn('_auth_user_id', self.client.session)
