@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 from shop.models import Product
@@ -54,6 +55,7 @@ class Coupon(models.Model):
         return True, ''
 
     def discount_amount(self, amount):
+        """Return the discount for ``amount``, never exceeding the amount itself."""
         if self.discount_type == self.TYPE_PERCENT:
             disc = amount * self.value // 100
         else:
@@ -62,6 +64,8 @@ class Coupon(models.Model):
 
 
 class Order(models.Model):
+    """A customer's order, snapshotting delivery details and item prices."""
+
     STATUS_PENDING = 'pending'
     STATUS_PAID = 'paid'
     STATUS_SHIPPED = 'shipped'
@@ -102,16 +106,22 @@ class Order(models.Model):
     def __str__(self):
         return f'کد سفارش {self.pk} — {self.full_name}'
 
+    def get_absolute_url(self):
+        return reverse('orders:order_detail', kwargs={'pk': self.pk})
+
     @property
     def items_total(self):
         return sum(item.line_total for item in self.items.all())
 
     def recalculate_total(self):
+        """Recompute ``total`` from the items and discount (does not save)."""
         self.total = self.items_total - self.discount
         return self.total
 
 
 class OrderItem(models.Model):
+    """A line of an order; name and price are copied so history never changes."""
+
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(
         Product, on_delete=models.SET_NULL, null=True, related_name='order_items',

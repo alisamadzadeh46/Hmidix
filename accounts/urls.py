@@ -37,6 +37,8 @@ urlpatterns = [
     # Addresses
     path('profile/addresses/', views.AddressListView.as_view(), name='addresses'),
     path('profile/addresses/add/', views.AddressCreateView.as_view(), name='address_add'),
-    path('profile/addresses/<int:pk>/edit/', views.AddressUpdateView.as_view(), name='address_edit'),
-    path('profile/addresses/<int:pk>/delete/', views.AddressDeleteView.as_view(), name='address_delete'),
+    path('profile/addresses/<int:pk>/edit/', views.AddressUpdateView.as_view(),
+         name='address_edit'),
+    path('profile/addresses/<int:pk>/delete/', views.AddressDeleteView.as_view(),
+         name='address_delete'),
 ]

@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from django.contrib import messages
+from django.contrib.auth.views import redirect_to_login
 from django.db.models import Count, IntegerField, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect
@@ -9,7 +10,6 @@ from django.views.generic import DetailView, ListView, TemplateView
 
 from .forms import ReviewForm
 from .models import Attribute, AttributeValue, Banner, Category, Product, Review
-
 
 SORT_OPTIONS = [
     ('newest', 'جدیدترین'),
@@ -40,21 +40,21 @@ class ProductFilterMixin:
     category = None
 
     def filter_and_sort(self, qs):
-        from orders.models import OrderItem  # local import avoids app-load cycle
+        from orders.models import Order, OrderItem  # local import avoids app-load cycle
 
         req = self.request.GET
 
-        # price range
+        # Price range
         for param, lookup in (('min_price', 'price__gte'), ('max_price', 'price__lte')):
             raw = req.get(param, '').strip()
             if raw.isdigit():
                 qs = qs.filter(**{lookup: int(raw)})
 
-        # availability
+        # Availability
         if req.get('in_stock'):
             qs = qs.filter(stock__gt=0).exclude(status=Product.STATUS_OUT)
 
-        # dynamic attribute filters — AND between attributes, OR inside one attribute
+        # Dynamic attribute filters: AND between attributes, OR inside one attribute
         value_ids = [v for v in req.getlist('attr') if v.isdigit()]
         if value_ids:
             pairs = AttributeValue.objects.filter(id__in=value_ids).values_list(
@@ -66,10 +66,11 @@ class ProductFilterMixin:
                 qs = qs.filter(attribute_values__in=vids)
             qs = qs.distinct()
 
-        # subquery annotations (subqueries don't inflate with the attribute joins)
+        # Sort annotations as subqueries so the attribute joins don't inflate them
         sold_sq = (
             OrderItem.objects
-            .filter(product_id=OuterRef('pk'), order__status__in=['paid', 'shipped'])
+            .filter(product_id=OuterRef('pk'),
+                    order__status__in=[Order.STATUS_PAID, Order.STATUS_SHIPPED])
             .values('product_id').annotate(t=Sum('quantity')).values('t')
         )
         review_sq = (
@@ -117,6 +118,8 @@ class ProductFilterMixin:
 
 
 class HomeView(TemplateView):
+    """Landing page: banners, featured products and one row per category."""
+
     template_name = 'shop/home.html'
 
     def get_context_data(self, **kwargs):
@@ -136,6 +139,8 @@ class HomeView(TemplateView):
 
 
 class CategoryView(ProductFilterMixin, ListView):
+    """Filterable product list of a single category."""
+
     template_name = 'shop/product_list.html'
     context_object_name = 'products'
     paginate_by = 12
@@ -182,6 +187,8 @@ class ProductListView(ProductFilterMixin, ListView):
 
 
 class ProductDetailView(DetailView):
+    """Product page with gallery, specs, related products and reviews."""
+
     model = Product
     template_name = 'shop/product_detail.html'
     context_object_name = 'product'
@@ -208,8 +215,7 @@ class ReviewCreateView(View):
         product = get_object_or_404(Product, slug=slug)
         if not request.user.is_authenticated:
             messages.warning(request, 'برای ثبت نظر ابتدا وارد شوید.')
-            return redirect(f"{request.build_absolute_uri('/auth/login/')}"
-                            f"?next={product.get_absolute_url()}")
+            return redirect_to_login(product.get_absolute_url())
         form = ReviewForm(request.POST)
         if form.is_valid():
             review = form.save(commit=False)

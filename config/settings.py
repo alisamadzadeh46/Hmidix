@@ -5,8 +5,9 @@ Configuration is driven by environment variables (loaded from a .env file in
 development) so the same code runs on SQLite locally and MySQL on the host.
 """
 
-from pathlib import Path
 import os
+import sys
+from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -174,10 +175,16 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# The hashed manifest storage requires `collectstatic`, so the test runner
+# falls back to plain storage and needs no build step.
+TESTING = sys.argv[1:2] == ['test']
 STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {
-        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        'BACKEND': (
+            'django.contrib.staticfiles.storage.StaticFilesStorage' if TESTING
+            else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+        ),
     },
 }
 
@@ -201,7 +208,9 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Hamidix <noreply@hamidix.ir>')
 
-# Payment gateway credentials are provided per deployment, never committed.
+# Payment gateway: dotted path of the module implementing the interface
+# documented in orders/payments.py. Credentials are provided per deployment.
+PAYMENT_GATEWAY = env_str('PAYMENT_GATEWAY', 'orders.zarinpal')
 ZARINPAL_MERCHANT_ID = env_str('ZARINPAL_MERCHANT_ID')
 ZARINPAL_SANDBOX = env_bool('ZARINPAL_SANDBOX', True)
 SITE_URL = env_str('SITE_URL').rstrip('/')

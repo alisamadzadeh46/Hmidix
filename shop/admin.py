@@ -2,7 +2,13 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import (
-    Attribute, AttributeValue, Banner, Category, Product, ProductImage, Review,
+    Attribute,
+    AttributeValue,
+    Banner,
+    Category,
+    Product,
+    ProductImage,
+    Review,
 )
 
 

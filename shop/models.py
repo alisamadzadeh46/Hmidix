@@ -146,7 +146,8 @@ class Product(models.Model):
     )
     call_for_price = models.BooleanField(
         'استعلام قیمت (تماس بگیرید)', default=False,
-        help_text='برای محصولات با قیمت دلاری/متغیر؛ به‌جای قیمت، پیام «تماس بگیرید» نمایش داده می‌شود',
+        help_text=('برای محصولات با قیمت دلاری/متغیر؛ '
+                   'به‌جای قیمت، پیام «تماس بگیرید» نمایش داده می‌شود'),
     )
     stock = models.PositiveIntegerField('موجودی', default=0)
     status = models.CharField('وضعیت', max_length=10, choices=STATUS_CHOICES,

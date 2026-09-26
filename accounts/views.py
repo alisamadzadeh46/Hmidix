@@ -4,12 +4,18 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import (
-    CreateView, DeleteView, FormView, ListView, RedirectView, TemplateView,
+    CreateView,
+    DeleteView,
+    FormView,
+    ListView,
+    RedirectView,
+    TemplateView,
     UpdateView,
 )
 
+from core.http import safe_redirect_url
+
 from .forms import AddressForm, LoginForm, ProfileForm, RegisterForm
-from .models import Address
 
 
 class AuthView(FormView):
@@ -60,11 +66,13 @@ class AuthView(FormView):
         )
 
     def _redirect_after_login(self, request):
-        nxt = request.GET.get('next') or request.POST.get('next')
-        return redirect(nxt or self.success_url)
+        nxt = request.POST.get('next') or request.GET.get('next')
+        return redirect(safe_redirect_url(request, nxt, self.success_url))
 
 
 class LogoutView(RedirectView):
+    """Log the user out and send them to the home page."""
+
     pattern_name = 'shop:home'
 
     def get(self, request, *args, **kwargs):
@@ -90,6 +98,8 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
 
 class OrdersView(LoginRequiredMixin, ListView):
+    """Paginated order history of the current user."""
+
     template_name = 'accounts/profile/orders.html'
     context_object_name = 'orders'
     paginate_by = 10
@@ -98,18 +108,25 @@ class OrdersView(LoginRequiredMixin, ListView):
         return self.request.user.orders.all()
 
 
-class AddressListView(LoginRequiredMixin, ListView):
-    template_name = 'accounts/profile/addresses.html'
-    context_object_name = 'addresses'
+class UserAddressMixin(LoginRequiredMixin):
+    """Scope address views to the addresses of the logged-in user."""
+
+    success_url = reverse_lazy('accounts:addresses')
 
     def get_queryset(self):
         return self.request.user.addresses.all()
 
 
-class AddressCreateView(LoginRequiredMixin, CreateView):
+class AddressListView(UserAddressMixin, ListView):
+    """Saved addresses of the current user."""
+
+    template_name = 'accounts/profile/addresses.html'
+    context_object_name = 'addresses'
+
+
+class AddressCreateView(UserAddressMixin, CreateView):
     form_class = AddressForm
     template_name = 'accounts/profile/address_form.html'
-    success_url = reverse_lazy('accounts:addresses')
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -122,31 +139,22 @@ class AddressCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
+        # Checkout links here with ?next= so the user returns after adding one.
         nxt = self.request.POST.get('next', '').strip()
-        if nxt and nxt.startswith('/'):
-            return nxt
-        return str(self.success_url)
+        return safe_redirect_url(self.request, nxt, self.success_url)
 
 
-class AddressUpdateView(LoginRequiredMixin, UpdateView):
+class AddressUpdateView(UserAddressMixin, UpdateView):
     form_class = AddressForm
     template_name = 'accounts/profile/address_form.html'
-    success_url = reverse_lazy('accounts:addresses')
-
-    def get_queryset(self):
-        return self.request.user.addresses.all()
 
     def form_valid(self, form):
         messages.success(self.request, 'آدرس ویرایش شد.')
         return super().form_valid(form)
 
 
-class AddressDeleteView(LoginRequiredMixin, DeleteView):
+class AddressDeleteView(UserAddressMixin, DeleteView):
     template_name = 'accounts/profile/address_confirm_delete.html'
-    success_url = reverse_lazy('accounts:addresses')
-
-    def get_queryset(self):
-        return self.request.user.addresses.all()
 
     def form_valid(self, form):
         messages.info(self.request, 'آدرس حذف شد.')
@@ -154,6 +162,8 @@ class AddressDeleteView(LoginRequiredMixin, DeleteView):
 
 
 class ReviewsView(LoginRequiredMixin, ListView):
+    """Reviews written by the current user."""
+
     template_name = 'accounts/profile/reviews.html'
     context_object_name = 'reviews'
     paginate_by = 10
@@ -163,6 +173,8 @@ class ReviewsView(LoginRequiredMixin, ListView):
 
 
 class AccountEditView(LoginRequiredMixin, UpdateView):
+    """Edit the current user's own profile details."""
+
     form_class = ProfileForm
     template_name = 'accounts/profile/account.html'
     success_url = reverse_lazy('accounts:account')

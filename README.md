@@ -8,17 +8,20 @@
 
 ```
 hamidix/
-├── config/            تنظیمات پروژه (settings, urls, wsgi)
+├── config/            تنظیمات پروژه (settings, urls, wsgi, middleware)
+├── core/              ابزارهای مشترک بین اپ‌ها (ریدایرکت امن و ...)
 ├── shop/              محصولات و دسته‌بندی‌ها (مدل، ویو، ادمین)
 │   └── management/commands/seed_products.py   انتقال محصولات قدیمی به DB
 ├── accounts/          کاربر سفارشی با ورود بر اساس شماره تلفن
-├── orders/            سبد خرید (session) و سفارش‌ها
+├── orders/            سبد خرید (session)، سفارش‌ها و اتصال به درگاه پرداخت
 ├── templates/         تمپلیت‌های HTML (base + صفحات)
 ├── static/            css / js / images / fonts
 ├── media/             تصاویر آپلودی محصولات
 ├── _legacy/           صفحات HTML قدیمی که seed_products محصولات را از آن‌ها می‌خواند
 ├── deploy.py          اسکریپت استقرار افزایشی (تنظیمات از .env)
-├── requirements.txt
+├── requirements.txt       وابستگی‌های اجرای سایت
+├── requirements-dev.txt   ابزارهای توسعه (ruff، paramiko)
+├── pyproject.toml         تنظیمات lint
 └── .env.example       نمونه‌ی تنظیمات محیطی
 ```
 
@@ -89,6 +92,25 @@ python manage.py collectstatic --noinput
 > برای استاتیک نیست؛ فقط `collectstatic` را اجرا کنید. تصاویر آپلودی در `media/`
 > ذخیره می‌شوند و باید توسط وب‌سرور روی `MEDIA_URL` سرو شوند.
 
+## تست و کیفیت کد
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .                  # بررسی استاندارد کد
+python manage.py test         # اجرای تست‌ها
+```
+
+این دو دستور در GitHub Actions روی هر push و pull request اجرا می‌شوند
+(`.github/workflows/ci.yml`).
+
+## درگاه پرداخت
+
+ویوهای سفارش به درگاه خاصی وابسته نیستند. ماژول درگاه با تنظیم `PAYMENT_GATEWAY`
+(مسیر ماژول پایتون) انتخاب می‌شود و باید سه تابع `payment_request`،
+`payment_verify` و `gateway_url` را داشته باشد. جزئیات این قرارداد در
+`orders/payments.py` آمده و نمونه‌ی ساده‌ی آن در `orders/tests/fake_gateway.py` است.
+برای افزودن درگاه جدید کافی است یک ماژول با همین توابع بسازید و مسیرش را در `.env` بگذارید.
+
 ## تنظیمات فروشگاه
 
 اطلاعات اختصاصی فروشگاه در مخزن ذخیره نمی‌شود و فقط از فایل `.env` خوانده می‌شود:
@@ -98,6 +120,7 @@ python manage.py collectstatic --noinput
 | `STORE_PHONE`، `STORE_ADDRESS` | شماره تماس و نشانی فروشگاه |
 | `STORE_TELEGRAM_SUPPORT`، `STORE_TELEGRAM_CHANNEL`، `STORE_BALE`، `STORE_RUBIKA`، `STORE_INSTAGRAM` | شناسه‌ی شبکه‌های اجتماعی (بدون @) |
 | `ENAMAD_ID`، `ENAMAD_CODE` | اطلاعات نماد اعتماد الکترونیکی |
+| `PAYMENT_GATEWAY` | مسیر ماژول درگاه پرداخت |
 | `ZARINPAL_MERCHANT_ID` | کد پذیرنده‌ی درگاه پرداخت |
 | `DEPLOY_*` | اطلاعات اتصال سرور برای `deploy.py` |
 

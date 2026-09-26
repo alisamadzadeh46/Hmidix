@@ -87,7 +87,8 @@ class Command(BaseCommand):
                             shutil.copy2(src_path, dest)
                         image_field = f'products/{src_path.name}'
 
-                slug_base = slugify(model_code or name, allow_unicode=True)[:270] or slugify(name, allow_unicode=True)[:270]
+                slug_base = (slugify(model_code or name, allow_unicode=True)[:270]
+                             or slugify(name, allow_unicode=True)[:270])
                 slug = slug_base
                 i = 1
                 while Product.objects.filter(slug=slug).exists():

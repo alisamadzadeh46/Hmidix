@@ -1,5 +1,7 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.db.models import F
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -7,12 +9,23 @@ from django.views import View
 from django.views.generic import DetailView, TemplateView
 
 from accounts.models import Address
+from core.http import parse_int, referer_or
 from shop.models import Product
 
 from .cart import Cart
 from .forms import CheckoutForm
 from .models import Coupon, Order, OrderItem
-from . import zarinpal
+from .payments import get_gateway
+
+
+def is_ajax(request):
+    """Return True for requests sent by the storefront's fetch() calls."""
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+
+def cart_summary(cart):
+    """JSON payload describing the cart after an AJAX change."""
+    return {'count': len(cart), 'total': cart.total}
 
 
 class CartView(TemplateView):
@@ -26,18 +39,20 @@ class CartAddView(View):
         product = get_object_or_404(Product, pk=pk)
         if product.call_for_price:
             msg = 'برای ثبت سفارش این محصول لطفاً با ما تماس بگیرید.'
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if is_ajax(request):
                 return JsonResponse({'error': msg}, status=400)
             messages.warning(request, msg)
             return redirect(product.get_absolute_url())
-        quantity = int(request.POST.get('quantity', 1) or 1)
+
+        quantity = parse_int(request.POST.get('quantity'), default=1, minimum=1)
         replace = request.POST.get('replace') == 'true'
         cart = Cart(request)
         cart.add(product, quantity=quantity, replace=replace)
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'count': len(cart), 'total': cart.total})
+
+        if is_ajax(request):
+            return JsonResponse(cart_summary(cart))
         messages.success(request, f'«{product.name}» به سبد خرید اضافه شد.')
-        return redirect(request.META.get('HTTP_REFERER', 'shop:home'))
+        return redirect(referer_or(request, 'shop:home'))
 
 
 class CartUpdateView(View):
@@ -45,9 +60,8 @@ class CartUpdateView(View):
 
     def post(self, request, pk):
         product = get_object_or_404(Product, pk=pk)
-        quantity = int(request.POST.get('quantity', 1) or 0)
-        cart = Cart(request)
-        cart.set_quantity(product, quantity)
+        quantity = parse_int(request.POST.get('quantity'), default=0)
+        Cart(request).set_quantity(product, quantity)
         return redirect('orders:cart')
 
 
@@ -56,8 +70,8 @@ class CartRemoveView(View):
         product = get_object_or_404(Product, pk=pk)
         cart = Cart(request)
         cart.remove(product)
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'count': len(cart), 'total': cart.total})
+        if is_ajax(request):
+            return JsonResponse(cart_summary(cart))
         return redirect('orders:cart')
 
 
@@ -75,23 +89,26 @@ class CouponApplyView(View):
                 messages.success(request, 'کد تخفیف اعمال شد.')
             else:
                 messages.error(request, error)
-        return redirect(request.META.get('HTTP_REFERER', 'orders:cart'))
+        return redirect(referer_or(request, 'orders:cart'))
 
 
 class CouponRemoveView(View):
     def post(self, request):
         Cart(request).remove_coupon()
         messages.info(request, 'کد تخفیف حذف شد.')
-        return redirect(request.META.get('HTTP_REFERER', 'orders:cart'))
+        return redirect(referer_or(request, 'orders:cart'))
 
 
-class CheckoutView(TemplateView):
+class CheckoutView(LoginRequiredMixin, TemplateView):
+    """Collect the delivery address and turn the cart into an order."""
+
     template_name = 'orders/checkout.html'
 
     def dispatch(self, request, *args, **kwargs):
+        # Authenticate before inspecting the cart; the mixin's own check only
+        # runs later, inside super().dispatch().
         if not request.user.is_authenticated:
-            from django.urls import reverse as _reverse
-            return redirect(f"{_reverse('accounts:login')}?next={_reverse('orders:checkout')}")
+            return self.handle_no_permission()
         self.cart = Cart(request)
         if len(self.cart) == 0:
             messages.warning(request, 'سبد خرید شما خالی است.')
@@ -100,140 +117,143 @@ class CheckoutView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        user = self.request.user
-        ctx['addresses'] = (user.addresses.all() if user.is_authenticated else [])
+        ctx['addresses'] = self.request.user.addresses.all()
         ctx['form'] = kwargs.get('form') or CheckoutForm(initial=self._initial())
         return ctx
 
     def _initial(self):
         user = self.request.user
-        if user.is_authenticated:
-            default = user.addresses.filter(is_default=True).first() or user.addresses.first()
-            if default:
-                return {'full_name': default.receiver, 'phone': default.phone,
-                        'address': default.full_line}
-            return {'full_name': user.full_name, 'phone': user.phone}
-        return {}
+        default = user.addresses.filter(is_default=True).first() or user.addresses.first()
+        if default:
+            return {'full_name': default.receiver, 'phone': default.phone,
+                    'address': default.full_line}
+        return {'full_name': user.full_name, 'phone': user.phone}
 
     def post(self, request, *args, **kwargs):
         user = request.user
-        address_id = request.POST.get('address_id')
 
-        # If a saved address was chosen, build the order from it directly.
-        if address_id and user.is_authenticated:
+        # A saved address was chosen: build the order from it directly.
+        address_id = request.POST.get('address_id')
+        if address_id:
             address = get_object_or_404(Address, pk=address_id, user=user)
-            return self._create_order(request, address.receiver, address.phone,
-                                      address.full_line)
+            return self._create_order(address.receiver, address.phone, address.full_line)
 
         form = CheckoutForm(request.POST)
-        if form.is_valid():
-            cd = form.cleaned_data
-            # Optionally save the new address to the user's profile.
-            if user.is_authenticated and request.POST.get('save_address'):
-                Address.objects.create(
-                    user=user, title=cd.get('full_name') or 'آدرس جدید',
-                    receiver=cd['full_name'], phone=cd['phone'],
-                    province='', city='', address=cd['address'],
-                )
-            return self._create_order(request, cd['full_name'], cd['phone'], cd['address'])
-        return self.render_to_response(self.get_context_data(form=form))
+        if not form.is_valid():
+            return self.render_to_response(self.get_context_data(form=form))
 
-    def _create_order(self, request, full_name, phone, address):
+        data = form.cleaned_data
+        if request.POST.get('save_address'):
+            Address.objects.create(
+                user=user, title=data.get('full_name') or 'آدرس جدید',
+                receiver=data['full_name'], phone=data['phone'],
+                province='', city='', address=data['address'],
+            )
+        return self._create_order(data['full_name'], data['phone'], data['address'])
+
+    def _create_order(self, full_name, phone, address):
         cart = self.cart
         coupon = cart.coupon
         with transaction.atomic():
             order = Order.objects.create(
-                user=request.user if request.user.is_authenticated else None,
+                user=self.request.user,
                 full_name=full_name, phone=phone, address=address,
                 coupon=coupon, discount=cart.discount,
             )
-            for item in cart:
-                product = item['product']
-                OrderItem.objects.create(
-                    order=order, product=product, name=product.name,
+            OrderItem.objects.bulk_create([
+                OrderItem(
+                    order=order, product=item['product'], name=item['product'].name,
                     price=item['unit_price'], quantity=item['quantity'],
                 )
+                for item in cart
+            ])
             order.recalculate_total()
             order.save(update_fields=['total'])
             if coupon:
-                Coupon.objects.filter(pk=coupon.pk).update(used_count=coupon.used_count + 1)
+                # Increment in the database to avoid lost updates under concurrency.
+                Coupon.objects.filter(pk=coupon.pk).update(used_count=F('used_count') + 1)
         cart.clear()
         return redirect('orders:payment_start', pk=order.pk)
 
 
-class PaymentStartView(View):
+class OrderOwnerMixin(LoginRequiredMixin):
+    """Restrict order views to the order's owner (staff can see every order)."""
+
+    def get_order_queryset(self):
+        qs = Order.objects.all()
+        user = self.request.user
+        return qs if user.is_staff else qs.filter(user=user)
+
+
+class PaymentStartView(OrderOwnerMixin, View):
     """Request a payment authority from the gateway and redirect the user to it."""
 
     def get(self, request, pk):
-        order = get_object_or_404(Order, pk=pk)
+        order = get_object_or_404(self.get_order_queryset(), pk=pk)
 
         # Guard against paying the same order twice.
         if order.status == Order.STATUS_PAID:
             messages.info(request, 'این سفارش قبلاً پرداخت شده است.')
-            return redirect('orders:order_detail', pk=order.pk)
+            return redirect(order)
 
+        gateway = get_gateway()
         callback_url = request.build_absolute_uri(
             reverse('orders:payment_verify', kwargs={'pk': order.pk})
         )
-        mobile = order.phone if order.phone else None
-        email = order.user.email if order.user and order.user.email else None
-
-        authority, error = zarinpal.payment_request(
+        authority, error = gateway.payment_request(
             amount=order.total,
             description=f'پرداخت سفارش کد {order.pk} - {order.full_name}',
             callback_url=callback_url,
-            mobile=mobile,
-            email=email,
+            mobile=order.phone or None,
+            email=(order.user.email if order.user else None) or None,
         )
-
         if error:
             messages.error(request, f'خطا در اتصال به درگاه پرداخت: {error}')
-            return redirect('orders:order_detail', pk=order.pk)
+            return redirect(order)
 
         order.authority = authority
         order.save(update_fields=['authority'])
-        return redirect(zarinpal.gateway_url(authority))
+        return redirect(gateway.gateway_url(authority))
 
 
 class PaymentVerifyView(View):
-    """Verify the payment when the user returns from the gateway."""
+    """Verify the payment when the user returns from the gateway.
+
+    Not login-protected on purpose: the customer's session may have expired
+    while paying. The order is only marked paid after the gateway confirms the
+    authority that was issued for this very order.
+    """
 
     def get(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
         status = request.GET.get('Status')
         authority = request.GET.get('Authority', '')
 
-        if status != 'OK':
+        if status != 'OK' or not order.authority or authority != order.authority:
             messages.error(request, 'پرداخت لغو شد یا ناموفق بود.')
-            return redirect('orders:order_detail', pk=order.pk)
+            return redirect(order)
 
         if order.status == Order.STATUS_PAID:
             messages.info(request, 'این سفارش قبلاً تأیید شده است.')
-            return redirect('orders:order_detail', pk=order.pk)
+            return redirect(order)
 
-        ref_id, error = zarinpal.payment_verify(
-            amount=order.total,
-            authority=authority or order.authority,
+        ref_id, error = get_gateway().payment_verify(
+            amount=order.total, authority=order.authority,
         )
-
         if error:
             messages.error(request, f'تأیید پرداخت ناموفق بود: {error}')
-            return redirect('orders:order_detail', pk=order.pk)
+            return redirect(order)
 
         order.status = Order.STATUS_PAID
         order.ref_id = ref_id
         order.save(update_fields=['status', 'ref_id'])
         messages.success(request, f'پرداخت موفق! شماره پیگیری: {ref_id}')
-        return redirect('orders:order_detail', pk=order.pk)
+        return redirect(order)
 
 
-class OrderDetailView(DetailView):
-    model = Order
+class OrderDetailView(OrderOwnerMixin, DetailView):
     template_name = 'orders/order_detail.html'
     context_object_name = 'order'
 
     def get_queryset(self):
-        qs = Order.objects.prefetch_related('items')
-        if self.request.user.is_authenticated and not self.request.user.is_staff:
-            return qs.filter(user=self.request.user)
-        return qs
+        return self.get_order_queryset().prefetch_related('items')
