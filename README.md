@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <a href="https://alisamadzadeh46.github.io/Hmidix/"><b>مشاهده‌ی نسخه‌ی نمایشی / Live demo</b></a>
+</p>
+
+<p align="center">
   <a href="#فارسی">فارسی</a> · <a href="#english">English</a>
 </p>
 
@@ -169,6 +173,20 @@ python manage.py createsuperuser --phone 09120000000
 می‌کنه، بعد migrate و collectstatic رو اجرا می‌کنه و سرویس رو ری‌استارت می‌کنه. دفعه‌ی اول که به
 یه سرور جدید وصل می‌شید، `DEPLOY_TRUST_NEW_HOST=true` رو بذارید تا کلید سرور ذخیره بشه.
 
+### نسخه‌ی نمایشی
+
+با هر push روی `main`، یه نسخه‌ی ثابت از سایت با محصولات نمونه ساخته می‌شه و روی GitHub Pages
+قرار می‌گیره. چون GitHub Pages فقط فایل ثابت نشون می‌ده، توی این نسخه ورود، سبد خرید، فیلترها و
+پرداخت کار نمی‌کنن. برای ساختنش روی سیستم خودتون:
+
+</div>
+
+```bash
+python manage.py build_static_demo --demo-data --output _site --base-path /Hmidix/
+```
+
+<div dir="rtl">
+
 ### تست
 
 </div>
@@ -301,6 +319,16 @@ serve.
 For later updates there is `deploy.py`. It uploads only the files that changed, runs migrations and
 `collectstatic`, then restarts the service. On the first deploy to a new server set
 `DEPLOY_TRUST_NEW_HOST=true` once so the server's host key gets saved.
+
+### Live demo
+
+Every push to `main` builds a static copy of the site with sample products and publishes it to
+GitHub Pages. Pages can only serve static files, so login, the cart, filters and payment don't
+work there. To build it yourself:
+
+```bash
+python manage.py build_static_demo --demo-data --output _site --base-path /Hmidix/
+```
 
 ### Tests
 

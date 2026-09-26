@@ -19,10 +19,10 @@
         صفحه‌ای که دنبالش می‌گردی وجود نداره، حذف شده یا آدرسش تغییر کرده.
     </p>
     <div class="error-actions">
-        <a href="/" class="btn btn-lg">
+        <a href="{% url 'shop:home' %}" class="btn btn-lg">
             <i class="fas fa-home"></i> برگشت به خانه
         </a>
-        <a href="/products/" class="btn btn-outline btn-lg">
+        <a href="{% url 'shop:product_list' %}" class="btn btn-outline btn-lg">
             <i class="fas fa-box-open"></i> مشاهده محصولات
         </a>
     </div>
