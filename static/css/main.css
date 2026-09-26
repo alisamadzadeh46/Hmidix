@@ -123,6 +123,13 @@ img { max-width: 100%; height: auto; display: block; }
     transition: background .2s, color .2s;
 }
 .user-action-item:hover { background: var(--surface); color: var(--text); }
+
+/* Logout is a POST form; make its button look like the surrounding links. */
+.logout-form { display: contents; }
+.link-button {
+    font: inherit; background: none; border: 0; cursor: pointer;
+    text-align: start;
+}
 .cart-icon { position: relative; }
 .cart-count {
     position: absolute; top: 0px; right: 0px;
@@ -704,18 +711,22 @@ img { max-width: 100%; height: auto; display: block; }
 .profile-user span { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 2px; display: block; }
 
 .profile-nav { display: flex; flex-direction: column; padding: 10px; }
-.profile-nav a {
+.profile-nav a,
+.profile-nav .logout {
     display: flex; align-items: center; gap: 10px;
     padding: 11px 14px; border-radius: var(--radius-sm); color: #4a5568; font-size: 14px;
     transition: background .2s, color .2s;
 }
-.profile-nav a i { width: 18px; color: var(--muted); transition: color .2s; }
-.profile-nav a:hover { background: var(--surface); color: var(--text); }
+.profile-nav a i,
+.profile-nav .logout i { width: 18px; color: var(--muted); transition: color .2s; }
+.profile-nav a:hover,
+.profile-nav .logout:hover { background: var(--surface); color: var(--text); }
 .profile-nav a:hover i { color: var(--secondary); }
 .profile-nav a.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
 .profile-nav a.active i { color: var(--primary); }
-.profile-nav a.logout { color: #c62828; margin-top: 4px; padding-top: 15px; border-top: 1px solid var(--border); border-radius: 0; }
-.profile-nav a.logout i { color: #c62828; }
+.profile-nav .logout { width: 100%; color: #c62828; margin-top: 4px; padding-top: 15px; border-top: 1px solid var(--border); border-radius: 0; }
+.profile-nav .logout i,
+.profile-nav .logout:hover { color: #c62828; }
 
 .profile-content { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); padding: 28px; min-height: 320px; }
 .profile-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }

@@ -29,9 +29,12 @@
                     <a href="{% url 'accounts:profile' %}" class="user-action-item">
                         <i class="fas fa-user"></i><span>{{ user.get_short_name }}</span>
                     </a>
-                    <a href="{% url 'accounts:logout' %}" class="user-action-item">
-                        <i class="fas fa-right-from-bracket"></i><span>خروج</span>
-                    </a>
+                    <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="user-action-item link-button">
+                            <i class="fas fa-right-from-bracket"></i><span>خروج</span>
+                        </button>
+                    </form>
                 {% else %}
                     <a href="{% url 'accounts:login' %}" class="user-action-item">
                         <i class="fas fa-user"></i><span>ورود | ثبت‌نام</span>

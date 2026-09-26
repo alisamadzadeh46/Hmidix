@@ -39,3 +39,18 @@ class AddressAccessTests(TestCase):
         self.client.force_login(make_user(phone='09120000002'))
         url = reverse('accounts:address_edit', args=[address.pk])
         self.assertEqual(self.client.get(url).status_code, 404)
+
+
+class LogoutTests(TestCase):
+    def setUp(self):
+        self.client.force_login(make_user())
+        self.url = reverse('accounts:logout')
+
+    def test_get_does_not_log_out(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+        self.assertIn('_auth_user_id', self.client.session)
+
+    def test_post_logs_out(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('shop:home'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)

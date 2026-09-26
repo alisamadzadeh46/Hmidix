@@ -3,12 +3,12 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import (
     CreateView,
     DeleteView,
     FormView,
     ListView,
-    RedirectView,
     TemplateView,
     UpdateView,
 )
@@ -70,15 +70,19 @@ class AuthView(FormView):
         return redirect(safe_redirect_url(request, nxt, self.success_url))
 
 
-class LogoutView(RedirectView):
-    """Log the user out and send them to the home page."""
+class LogoutView(View):
+    """Log the user out and send them to the home page.
 
-    pattern_name = 'shop:home'
+    Accepts POST only, so a third-party page cannot log users out with a
+    simple link or image (logout CSRF). Templates render it as a small form.
+    """
 
-    def get(self, request, *args, **kwargs):
+    http_method_names = ['post']
+
+    def post(self, request, *args, **kwargs):
         logout(request)
         messages.info(request, 'از حساب خود خارج شدید.')
-        return super().get(request, *args, **kwargs)
+        return redirect('shop:home')
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):
