@@ -37,3 +37,19 @@ class PageRenderTests(TestCase):
                                     {'rating': 5, 'text': 'Good'})
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.startswith(reverse('accounts:login')))
+
+
+class HomePageTests(TestCase):
+    def test_featured_products_are_listed(self):
+        make_product(name='Featured cam', slug='featured-cam', is_featured=True)
+        html = self.client.get(reverse('shop:home')).content.decode()
+        self.assertIn('محصولات ویژه', html)
+        self.assertIn('Featured cam', html)
+
+    def test_no_placeholder_promo_banners(self):
+        html = self.client.get(reverse('shop:home')).content.decode()
+        self.assertNotIn('baner2.webp', html)
+
+    def test_admin_link_hidden_from_visitors(self):
+        html = self.client.get(reverse('shop:home')).content.decode()
+        self.assertNotIn(reverse('admin:index'), html)

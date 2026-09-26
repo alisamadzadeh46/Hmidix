@@ -131,7 +131,7 @@ class HomeView(TemplateView):
             if products:
                 sections.append({'category': category, 'products': products})
         ctx['sections'] = sections
-        ctx['featured'] = Product.objects.filter(is_featured=True)[:8]
+        ctx['featured'] = Product.objects.filter(is_featured=True).select_related('category')[:8]
         active_banners = Banner.objects.filter(is_active=True)
         ctx['hero_banners'] = active_banners.filter(position=Banner.POSITION_HERO)
         ctx['promo_banners'] = active_banners.filter(position=Banner.POSITION_PROMO)

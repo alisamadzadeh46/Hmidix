@@ -40,11 +40,25 @@
         </div>
         {% endfor %}
     </div>
-    {% else %}
-    <div class="banner-row">
-        <img src="{% static 'images/baner2.webp' %}" alt="تبلیغ">
-        <img src="{% static 'images/baner3.webp' %}" alt="تبلیغ">
-    </div>
+    {% endif %}
+
+    {# ---------- Featured products (marked "show on home page" in admin) ---------- #}
+    {% if featured %}
+    <section class="products-section">
+        <h2 class="section-title">
+            محصولات ویژه
+            <a href="{% url 'shop:product_list' %}">مشاهده همه <i class="fas fa-arrow-left"></i></a>
+        </h2>
+        <div class="row-wrap">
+            <button class="row-arrow row-next" aria-label="بعدی"><i class="fas fa-chevron-right"></i></button>
+            <div class="products-row">
+                {% for product in featured %}
+                    {% include 'shop/_product_card.html' %}
+                {% endfor %}
+            </div>
+            <button class="row-arrow row-prev" aria-label="قبلی"><i class="fas fa-chevron-left"></i></button>
+        </div>
+    </section>
     {% endif %}
 
     {% for section in sections %}
@@ -65,7 +79,7 @@
     </section>
     {% empty %}
         <div class="empty-state">
-            <p>هنوز محصولی ثبت نشده است. از <a href="/admin/">پنل مدیریت</a> محصول اضافه کنید.</p>
+            <p>هنوز محصولی ثبت نشده است.{% if user.is_staff %} از <a href="{% url 'admin:index' %}">پنل مدیریت</a> محصول اضافه کنید.{% endif %}</p>
         </div>
     {% endfor %}
 </div>
