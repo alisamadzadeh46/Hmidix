@@ -1,0 +1,32 @@
+{% extends 'accounts/profile/_base.html' %}
+{% load shop_extras %}
+
+{% block title %}سفارش‌های من | hamidix.ir{% endblock %}
+
+{% block profile %}
+<h1 class="profile-title">سفارش‌های من</h1>
+{% if orders %}
+    <table class="cart-table">
+        <thead><tr><th>کد سفارش</th><th>تاریخ</th><th>مبلغ</th><th>وضعیت</th><th></th></tr></thead>
+        <tbody>
+        {% for order in orders %}
+            <tr>
+                <td data-label="کد سفارش">{{ order.pk }}</td>
+                <td data-label="تاریخ">{{ order.created_at|date:'Y/m/d' }}</td>
+                <td data-label="مبلغ" style="font-weight:600">{{ order.total|currency|fa_num }} ریال</td>
+                <td data-label="وضعیت"><span class="order-status {{ order.status }}">{{ order.get_status_display }}</span></td>
+                <td data-label=""><a href="{% url 'orders:order_detail' order.pk %}" class="btn btn-outline btn-sm">جزئیات</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'shop/_pagination.html' %}
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-box-open"></i>
+        <p>هنوز سفارشی ثبت نکرده‌اید.</p>
+        <a href="{% url 'shop:product_list' %}" class="btn">مشاهده محصولات</a>
+    </div>
+{% endif %}
+{% endblock %}
+

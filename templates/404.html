@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}صفحه پیدا نشد | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-illustration">
+        <div class="error-code">
+            <span class="digit">4</span>
+            <span class="digit zero">
+                <i class="fas fa-search-minus"></i>
+            </span>
+            <span class="digit">4</span>
+        </div>
+    </div>
+    <h1 class="error-title">صفحه‌ای پیدا نشد!</h1>
+    <p class="error-desc">
+        صفحه‌ای که دنبالش می‌گردی وجود نداره، حذف شده یا آدرسش تغییر کرده.
+    </p>
+    <div class="error-actions">
+        <a href="/" class="btn btn-lg">
+            <i class="fas fa-home"></i> برگشت به خانه
+        </a>
+        <a href="/products/" class="btn btn-outline btn-lg">
+            <i class="fas fa-box-open"></i> مشاهده محصولات
+        </a>
+    </div>
+</div>
+{% endblock %}
+

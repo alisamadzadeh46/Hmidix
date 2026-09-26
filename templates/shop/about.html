@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}درباره فروشگاه Hamidix | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container page-wrap">
+
+    {# ─── Hero ─── #}
+    <section class="about-hero">
+        <span class="about-hero-badge"><i class="fas fa-shield-halved"></i> فروشگاه تخصصی امنیت و نظارت تصویری</span>
+        <h1>درباره فروشگاه Hamidix</h1>
+        <p>
+            Hamidix ارائه‌دهندهٔ تخصصی انواع دوربین‌های مداربستهٔ آنالوگ و تحت شبکه، دستگاه‌های
+            ضبط تصاویر DVR و NVR، سیستم‌های دزدگیر اماکن و لوازم جانبی کامپیوتر است. ما با تکیه بر
+            چند سال تجربه در حوزهٔ نظارت تصویری، تلاش می‌کنیم بهترین محصولات را با قیمت منصفانه و
+            خدمات پس از فروش مطمئن در اختیار شما قرار دهیم.
+        </p>
+    </section>
+
+    {# ─── Why us ─── #}
+    <h2 class="section-title">چرا Hamidix؟</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-certificate"></i></div>
+            <h3>ضمانت اصالت کالا</h3>
+            <p>تمام محصولات اورجینال و دارای گارانتی معتبر شرکتی هستند.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-truck-fast"></i></div>
+            <h3>ارسال به سراسر کشور</h3>
+            <p>ارسال سریع و مطمئن سفارش‌ها از طریق پست پیشتاز و تیپاکس.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-headset"></i></div>
+            <h3>پشتیبانی و مشاوره</h3>
+            <p>کارشناسان ما پیش و پس از خرید در انتخاب محصول همراه شما هستند.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-lock"></i></div>
+            <h3>پرداخت امن</h3>
+            <p>پرداخت از طریق درگاه امن زرین‌پال با رمزنگاری کامل اطلاعات.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-boxes-stacked"></i></div>
+            <h3>تنوع محصولات</h3>
+            <p>طیف گسترده‌ای از برندها و مدل‌ها برای هر نیاز و بودجه.</p>
+        </div>
+        {% if enamad %}
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-award"></i></div>
+            <h3>نماد اعتماد الکترونیکی</h3>
+            <p>دارای نماد اعتماد الکترونیکی از مرکز توسعهٔ تجارت الکترونیکی.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {# ─── Categories ─── #}
+    <h2 class="section-title">حوزه‌های فعالیت ما</h2>
+    <div class="detail-desc">
+        <ul class="about-list">
+            <li><i class="fas fa-video"></i> دوربین‌های مداربستهٔ آنالوگ و تحت شبکه (IP)</li>
+            <li><i class="fas fa-server"></i> دستگاه‌های ضبط تصاویر DVR و NVR</li>
+            <li><i class="fas fa-bell"></i> سیستم‌های دزدگیر و اعلام حریق اماکن</li>
+            <li><i class="fas fa-keyboard"></i> لوازم جانبی کامپیوتر و تجهیزات شبکه</li>
+        </ul>
+    </div>
+
+    {# ─── CTA ─── #}
+    <div class="about-cta">
+        <div>
+            <h3>سوالی دارید یا به مشاوره نیاز دارید؟</h3>
+            <p>کارشناسان ما آمادهٔ پاسخگویی به شما هستند.</p>
+        </div>
+        <div class="about-cta-actions">
+            <a href="{% url 'shop:contact' %}" class="btn"><i class="fas fa-headset"></i> تماس با ما</a>
+            <a href="{% url 'shop:product_list' %}" class="btn btn-outline"><i class="fas fa-store"></i> مشاهدهٔ محصولات</a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static shop_extras %}
+
+{% block title %}سبد خرید | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container page-wrap">
+    <h1 class="page-title">🛍️ سبد خرید</h1>
+
+    {% if cart|length %}
+    <div class="cart-grid">
+        {# ---------- Items ---------- #}
+        <div class="cart-items-col">
+            {% for item in cart %}
+            <div class="cart-line">
+                <a href="{{ item.product.get_absolute_url }}" class="cart-line-img">
+                    {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    {% else %}
+                        <img src="{% static 'images/products.webp' %}" alt="{{ item.product.name }}">
+                    {% endif %}
+                </a>
+                <div class="cart-line-body">
+                    <a href="{{ item.product.get_absolute_url }}" class="cart-line-name">{{ item.product.name }}</a>
+                    <div class="cart-line-price">{{ item.product.price|currency|fa_num }} ریال</div>
+                </div>
+                <div class="cart-line-actions">
+                    <form method="post" action="{% url 'orders:cart_update' item.product.pk %}" class="cart-qty-form">
+                        {% csrf_token %}
+                        <div class="qty-control">
+                            <button type="button" class="qty-minus" aria-label="کاهش">−</button>
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="0" max="{{ item.product.stock }}">
+                            <button type="button" class="qty-plus" aria-label="افزایش">+</button>
+                        </div>
+                    </form>
+                    <div class="cart-line-total">{{ item.line_total|currency|fa_num }} ریال</div>
+                    <form method="post" action="{% url 'orders:cart_remove' item.product.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="cart-remove" title="حذف"><i class="fas fa-trash-can"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {# ---------- Summary ---------- #}
+        <aside class="cart-summary-col">
+            <div class="summary-box">
+                <h3>خلاصه سفارش</h3>
+
+                <form method="post" action="{% url 'orders:coupon_apply' %}" class="coupon-form">
+                    {% csrf_token %}
+                    {% if cart.coupon %}
+                        <div class="coupon-applied">
+                            <span><i class="fas fa-ticket"></i> کد «{{ cart.coupon.code }}» اعمال شد</span>
+                        </div>
+                    {% else %}
+                        <label>کد تخفیف دارید؟</label>
+                        <div class="coupon-input-row">
+                            <input type="text" name="code" placeholder="کد تخفیف">
+                            <button type="submit" class="btn">اعمال</button>
+                        </div>
+                    {% endif %}
+                </form>
+                {% if cart.coupon %}
+                <form method="post" action="{% url 'orders:coupon_remove' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="link-btn">حذف کد تخفیف</button>
+                </form>
+                {% endif %}
+
+                <div class="summary-row">
+                    <span>جمع کالاها</span>
+                    <span>{{ cart.subtotal|currency|fa_num }} ریال</span>
+                </div>
+                {% if cart.discount %}
+                <div class="summary-row discount-row">
+                    <span>تخفیف</span>
+                    <span>− {{ cart.discount|currency|fa_num }} ریال</span>
+                </div>
+                {% endif %}
+                <div class="summary-row total-row">
+                    <span>مبلغ قابل پرداخت</span>
+                    <span>{{ cart.total|currency|fa_num }} ریال</span>
+                </div>
+
+                <a href="{% url 'orders:checkout' %}" class="btn btn-lg btn-block">ادامه و تکمیل خرید</a>
+                <a href="{% url 'shop:product_list' %}" class="link-btn center">بازگشت به فروشگاه</a>
+            </div>
+        </aside>
+    </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-cart-shopping" style="font-size:48px;color:#ddd;"></i>
+            <p>سبد خرید شما خالی است.</p>
+            <a href="{% url 'shop:product_list' %}" class="btn">مشاهده محصولات</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,57 @@
+{% extends 'accounts/profile/_base.html' %}
+{% load shop_extras %}
+
+{% block title %}پیشخوان | hamidix.ir{% endblock %}
+
+{% block profile %}
+<h1 class="profile-title">پیشخوان</h1>
+<p class="profile-welcome">
+    {{ user.get_short_name }} عزیز، به حساب کاربری خوش آمدید.
+    <span class="account-type {% if user.is_colleague %}colleague{% endif %}">
+        {% if user.is_colleague %}<i class="fas fa-user-tie"></i> کاربر همکار{% else %}<i class="fas fa-user"></i> کاربر عادی{% endif %}
+    </span>
+</p>
+
+<div class="stat-cards">
+    <a href="{% url 'accounts:orders' %}" class="stat-card">
+        <i class="fas fa-box"></i>
+        <span class="stat-num">{{ order_count }}</span>
+        <span class="stat-label">سفارش</span>
+    </a>
+    <a href="{% url 'accounts:addresses' %}" class="stat-card">
+        <i class="fas fa-location-dot"></i>
+        <span class="stat-num">{{ address_count }}</span>
+        <span class="stat-label">آدرس</span>
+    </a>
+    <a href="{% url 'accounts:reviews' %}" class="stat-card">
+        <i class="fas fa-comment-dots"></i>
+        <span class="stat-num">{{ review_count }}</span>
+        <span class="stat-label">نظر</span>
+    </a>
+</div>
+
+<h2 class="profile-subtitle">آخرین سفارش‌ها</h2>
+{% if recent_orders %}
+    <table class="cart-table">
+        <thead><tr><th>کد سفارش</th><th>تاریخ</th><th>مبلغ</th><th>وضعیت</th><th></th></tr></thead>
+        <tbody>
+        {% for order in recent_orders %}
+            <tr>
+                <td data-label="کد سفارش">{{ order.pk }}</td>
+                <td data-label="تاریخ">{{ order.created_at|date:'Y/m/d' }}</td>
+                <td data-label="مبلغ" style="font-weight:600">{{ order.total|currency|fa_num }} ریال</td>
+                <td data-label="وضعیت"><span class="order-status {{ order.status }}">{{ order.get_status_display }}</span></td>
+                <td data-label=""><a href="{% url 'orders:order_detail' order.pk %}" class="btn btn-outline btn-sm">جزئیات</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-box-open"></i>
+        <p>هنوز سفارشی ثبت نکرده‌اید.</p>
+        <a href="{% url 'shop:product_list' %}" class="btn">مشاهده محصولات</a>
+    </div>
+{% endif %}
+{% endblock %}
+

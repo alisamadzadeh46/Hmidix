@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static shop_extras %}
+
+{% block title %}{{ product.name }} | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="{% url 'shop:home' %}">خانه</a>
+        <i class="fas fa-angle-left"></i>
+        <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a>
+        <i class="fas fa-angle-left"></i>
+        <span>{{ product.name|truncatechars:40 }}</span>
+    </nav>
+
+    <div class="product-detail">
+        {# ─── Gallery ─── #}
+        {% with extra=product.images.all %}
+        {% with total_count=extra|length|add:1 %}
+        <div class="gallery-wrap" id="productGallery">
+            <div class="gallery-main" id="galleryMain">
+                {% if product.badge %}<span class="gallery-badge">{{ product.badge }}</span>{% endif %}
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" id="galleryMainImg">
+                {% else %}
+                    <img src="{% static 'images/products.webp' %}" alt="{{ product.name }}" id="galleryMainImg">
+                {% endif %}
+                {% if total_count > 1 %}
+                <span class="gallery-counter" id="galleryCounter">1 / {{ total_count }}</span>
+                <button class="gallery-nav g-next" id="gNext" type="button"><i class="fas fa-chevron-left"></i></button>
+                <button class="gallery-nav g-prev" id="gPrev" type="button"><i class="fas fa-chevron-right"></i></button>
+                {% endif %}
+            </div>
+
+            {% if extra %}
+            <div class="gallery-thumbs">
+                {# Main image #}
+                <div class="gallery-thumb active" data-src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/products.webp' %}{% endif %}">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="{% static 'images/products.webp' %}" alt="">
+                    {% endif %}
+                </div>
+                {# Additional gallery images #}
+                {% for img in extra %}
+                <div class="gallery-thumb" data-src="{{ img.image.url }}">
+                    <img src="{{ img.image.url }}" alt="{{ product.name }}">
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endwith %}
+        {% endwith %}
+
+        {# ─── Info ─── #}
+        <div class="detail-main">
+            <h1>{{ product.name }}</h1>
+
+            <ul class="detail-meta-list">
+                {% if product.model_code %}
+                <li><i class="fas fa-barcode"></i> کد مدل: <strong>{{ product.model_code }}</strong></li>
+                {% endif %}
+                <li><i class="fas fa-folder"></i> دسته‌بندی:
+                    <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
+                <li>
+                    {% if product.in_stock %}
+                        <span class="stock-badge in"><i class="fas fa-check-circle"></i>
+                            {% if product.status == 'low' %}موجودی محدود{% else %}موجود در انبار{% endif %}</span>
+                    {% else %}
+                        <span class="stock-badge out"><i class="fas fa-times-circle"></i> ناموجود</span>
+                    {% endif %}
+                </li>
+            </ul>
+
+            <div class="buy-box">
+                {% if product.in_stock %}
+                    <div class="buy-box-price">
+                        {% if user.is_colleague and product.colleague_price %}
+                            <span class="colleague-badge"><i class="fas fa-user-tie"></i> قیمت ویژهٔ همکار</span>
+                            <div class="detail-price">{{ product.colleague_price|currency|fa_num }} <span>ریال</span></div>
+                        {% else %}
+                            {% if product.discount_percent %}
+                                <div class="price-old-row">
+                                    <span class="old-price">{{ product.old_price|currency|fa_num }} ریال</span>
+                                    <span class="discount">{{ product.discount_percent }}٪ تخفیف</span>
+                                </div>
+                            {% endif %}
+                            <div class="detail-price">{{ product.price|currency|fa_num }} <span>ریال</span></div>
+                        {% endif %}
+                    </div>
+
+                    {% if product.call_for_price %}
+                        <div class="price-warning">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            <div>
+                                <span>به علت نوسان نرخ ارز، ممکن است این قیمت دقیق نباشد. برای ثبت سفارش این محصول لطفاً با ما تماس بگیرید.</span>
+                            </div>
+                        </div>
+                        {% if store.phone %}
+                        <a href="tel:{{ store.phone }}" class="btn btn-lg btn-block">
+                            <i class="fas fa-phone"></i> تماس برای ثبت سفارش
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'shop:contact' %}" class="btn btn-outline btn-lg btn-block call-contact-btn">
+                            <i class="fas fa-headset"></i> راه‌های ارتباطی
+                        </a>
+                    {% else %}
+                        <form class="buy-actions" method="post" action="{% url 'orders:cart_add' product.pk %}">
+                            {% csrf_token %}
+                            <div class="qty-row">
+                                <span>تعداد:</span>
+                                <div class="qty-control">
+                                    <button type="button" class="qty-minus">−</button>
+                                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}">
+                                    <button type="button" class="qty-plus">+</button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-lg btn-block">
+                                <i class="fas fa-cart-plus"></i> افزودن به سبد خرید
+                            </button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <div class="detail-price out-of-stock"><i class="fas fa-times-circle"></i> ناموجود</div>
+                    <p class="muted">این محصول در حال حاضر موجود نیست.</p>
+                {% endif %}
+
+                <div class="buy-assurances">
+                    <span><i class="fas fa-shield-halved"></i> ضمانت اصالت کالا</span>
+                    <span><i class="fas fa-truck-fast"></i> ارسال به سراسر کشور</span>
+                    <span><i class="fas fa-headset"></i> پشتیبانی و مشاوره</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ─── Description ─── #}
+    <section class="detail-section detail-card">
+        <h2 class="detail-card-title"><i class="fas fa-align-right"></i> معرفی محصول</h2>
+        <div class="detail-desc">
+            {% if product.description %}
+                {{ product.description|linebreaksbr }}
+            {% else %}
+                <p>{{ product.name }} یکی از محصولات دسته‌ی «{{ product.category.name }}» در فروشگاه Hamidix است.
+                برای دریافت مشخصات فنی کامل و مشاوره‌ی خرید با کارشناسان ما در ارتباط باشید.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    {# ─── Technical specs (dynamic, admin-managed) ─── #}
+    {% if product.specs %}
+    <section class="detail-section detail-card" id="specs">
+        <h2 class="detail-card-title"><i class="fas fa-list-check"></i> مشخصات فنی</h2>
+        <table class="spec-table">
+            <tbody>
+            {% for attribute, values in product.specs %}
+                <tr>
+                    <th>{{ attribute.name }}{% if attribute.unit %} <small>({{ attribute.unit }})</small>{% endif %}</th>
+                    <td>
+                        {% for v in values %}{% if v.value == 'دارد' %}<span class="spec-yes"><i class="fas fa-check"></i> دارد</span>{% elif v.value == 'ندارد' %}<span class="spec-no"><i class="fas fa-minus"></i> ندارد</span>{% else %}{{ v.value }}{% endif %}{% if not forloop.last %} <span class="spec-sep">،</span> {% endif %}{% endfor %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+
+    {# ─── Reviews ─── #}
+    <section class="detail-section detail-card" id="reviews">
+        <h2 class="detail-card-title"><i class="fas fa-comments"></i> نظرات کاربران ({{ reviews|length }})</h2>
+
+        {% if reviews %}
+        <div class="review-list">
+            {% for review in reviews %}
+            <div class="review-item">
+                <div class="review-item-head">
+                    <strong><i class="fas fa-user-circle"></i> {{ review.user.get_short_name }}</strong>
+                    <span class="stars">{% for _ in "12345"|make_list %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+                </div>
+                <p class="review-text">{{ review.text }}</p>
+                <span class="review-date">{{ review.created_at|date:'Y/m/d' }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="muted">هنوز نظری برای این محصول ثبت نشده است. اولین نفر باشید!</p>
+        {% endif %}
+
+        <div class="review-form-box">
+            <h3>ثبت نظر</h3>
+            {% if user.is_authenticated %}
+            <form method="post" action="{% url 'shop:add_review' product.slug %}" class="profile-form">
+                {% csrf_token %}
+                <div class="input-group"><label>امتیاز</label>{{ review_form.rating }}</div>
+                <div class="input-group"><label>نظر شما</label>{{ review_form.text }}</div>
+                <button type="submit" class="btn">ارسال نظر</button>
+            </form>
+            {% else %}
+            <p class="muted">برای ثبت نظر ابتدا <a href="{% url 'accounts:login' %}?next={{ product.get_absolute_url }}">وارد شوید</a>.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if related %}
+    <section class="products-section">
+        <h2 class="section-title">محصولات مشابه</h2>
+        <div class="products">
+            {% for product in related %}
+                {% include 'shop/_product_card.html' %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+{# Lightbox #}
+<div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose"><i class="fas fa-times"></i></button>
+    <button class="lightbox-arrow lb-next" id="lbNext"><i class="fas fa-chevron-right"></i></button>
+    <img src="" alt="" id="lightboxImg">
+    <button class="lightbox-arrow lb-prev" id="lbPrev"><i class="fas fa-chevron-left"></i></button>
+</div>
+{% endblock %}
+

@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">{{ site_header|default:"مدیریت فروشگاه Hamidix" }}</a>
+</h1>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+  @font-face {
+    font-family: 'Vazirmatn';
+    font-style: normal;
+    font-weight: 100 900;
+    src: url('{% static "fonts/Vazirmatn-VariableFont_wght.ttf" %}') format('truetype');
+    font-display: swap;
+  }
+  body, input, textarea, select, button, th, td, label, a, h1, h2, h3, p, span, div {
+    font-family: 'Vazirmatn', Tahoma, Arial, sans-serif !important;
+  }
+</style>
+{% endblock %}
+

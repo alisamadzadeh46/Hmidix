@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    {# ---------- Hero slider ---------- #}
+    {% if hero_banners %}
+    <div class="hero-slider" id="heroSlider">
+        <div class="slides">
+            {% for banner in hero_banners %}
+            <div class="slide{% if forloop.first %} active{% endif %}">
+                {% if banner.link %}<a href="{{ banner.link }}">{% endif %}
+                    <img src="{{ banner.image.url }}" alt="{{ banner.title }}">
+                {% if banner.link %}</a>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% if hero_banners|length > 1 %}
+        <button class="slider-btn next" type="button" aria-label="بعدی"><i class="fas fa-chevron-right"></i></button>
+        <button class="slider-btn prev" type="button" aria-label="قبلی"><i class="fas fa-chevron-left"></i></button>
+        <div class="slider-dots">
+            {% for banner in hero_banners %}
+            <button class="dot{% if forloop.first %} active{% endif %}" type="button" data-index="{{ forloop.counter0 }}"></button>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="hero"><img src="{% static 'images/baner.jpg' %}" alt="محصولات دیجیتال"></div>
+    {% endif %}
+
+    {# ---------- Promo banners ---------- #}
+    {% if promo_banners %}
+    <div class="banner-row">
+        {% for banner in promo_banners %}
+        <div class="promo-banner">
+            {% if banner.link %}<a href="{{ banner.link }}">{% endif %}
+                <img src="{{ banner.image.url }}" alt="{{ banner.title }}">
+            {% if banner.link %}</a>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="banner-row">
+        <img src="{% static 'images/baner2.webp' %}" alt="تبلیغ">
+        <img src="{% static 'images/baner3.webp' %}" alt="تبلیغ">
+    </div>
+    {% endif %}
+
+    {% for section in sections %}
+    <section class="products-section">
+        <h2 class="section-title">
+            {{ section.category.name }}
+            <a href="{{ section.category.get_absolute_url }}">مشاهده همه <i class="fas fa-arrow-left"></i></a>
+        </h2>
+        <div class="row-wrap">
+            <button class="row-arrow row-next" aria-label="بعدی"><i class="fas fa-chevron-right"></i></button>
+            <div class="products-row">
+                {% for product in section.products %}
+                    {% include 'shop/_product_card.html' %}
+                {% endfor %}
+            </div>
+            <button class="row-arrow row-prev" aria-label="قبلی"><i class="fas fa-chevron-left"></i></button>
+        </div>
+    </section>
+    {% empty %}
+        <div class="empty-state">
+            <p>هنوز محصولی ثبت نشده است. از <a href="/admin/">پنل مدیریت</a> محصول اضافه کنید.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+

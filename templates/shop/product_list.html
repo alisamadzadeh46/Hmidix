@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+
+{% block title %}{{ page_title }} | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container page-wrap">
+    <h1 class="page-title">{{ page_title }}</h1>
+
+    <form method="get" class="shop-layout" id="shopFilters">
+        {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+
+        {# ─── Filter sidebar ─── #}
+        <aside class="filter-sidebar" id="filterSidebar">
+            <div class="filter-sidebar-head">
+                <h2><i class="fas fa-sliders"></i> فیلترها</h2>
+                {% if has_active_filters %}
+                    <a href="?{% if query %}q={{ query }}{% endif %}" class="filter-clear">حذف فیلترها</a>
+                {% endif %}
+                <button type="button" class="filter-close" id="filterClose" aria-label="بستن">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            {# Availability #}
+            <div class="filter-group">
+                <label class="filter-check">
+                    <input type="checkbox" name="in_stock" value="1"
+                           {% if in_stock_checked %}checked{% endif %}>
+                    <span>فقط کالاهای موجود</span>
+                </label>
+            </div>
+
+            {# Price range #}
+            <div class="filter-group">
+                <h3 class="filter-group-title">محدودهٔ قیمت (ریال)</h3>
+                <div class="filter-price">
+                    <input type="number" name="min_price" placeholder="از" value="{{ min_price }}" min="0">
+                    <span>تا</span>
+                    <input type="number" name="max_price" placeholder="تا" value="{{ max_price }}" min="0">
+                </div>
+            </div>
+
+            {# Dynamic attribute filters #}
+            {% for group in filter_groups %}
+            <div class="filter-group">
+                <h3 class="filter-group-title">
+                    {{ group.attribute.name }}
+                    {% if group.attribute.unit %}<small>({{ group.attribute.unit }})</small>{% endif %}
+                </h3>
+                <div class="filter-options">
+                    {% for v in group.values %}
+                    <label class="filter-check">
+                        <input type="checkbox" name="attr" value="{{ v.id }}"
+                               {% if v.checked %}checked{% endif %}>
+                        <span>{{ v.value }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-block filter-apply">اعمال فیلتر</button>
+        </aside>
+
+        {# ─── Products area ─── #}
+        <div class="products-area">
+            <div class="sort-bar">
+                <button type="button" class="filter-toggle" id="filterToggle">
+                    <i class="fas fa-sliders"></i> فیلترها
+                </button>
+                <div class="sort-control">
+                    <label><i class="fas fa-arrow-down-wide-short"></i> مرتب‌سازی:</label>
+                    <div class="custom-select" id="sortSelect">
+                        <input type="hidden" name="sort" value="{{ selected_sort }}">
+                        <button type="button" class="custom-select-btn">
+                            <i class="fas fa-arrow-down-wide-short cs-btn-icon"></i>
+                            <span class="cs-label">{% for value, label in sort_options %}{% if value == selected_sort %}{{ label }}{% endif %}{% endfor %}</span>
+                            <i class="fas fa-chevron-down cs-caret"></i>
+                        </button>
+                        <ul class="custom-select-menu">
+                            {% for value, label in sort_options %}
+                            <li class="cs-option {% if value == selected_sort %}selected{% endif %}" data-value="{{ value }}">{{ label }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <span class="result-count">{{ paginator.count|fa_num }} کالا</span>
+            </div>
+
+            {% if products %}
+            <div class="products">
+                {% for product in products %}
+                    {% include 'shop/_product_card.html' %}
+                {% endfor %}
+            </div>
+
+            {% include 'shop/_pagination.html' %}
+            {% else %}
+                <div class="empty-state"><p>محصولی با این فیلترها یافت نشد.</p></div>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var toggle = document.getElementById('filterToggle');
+        var sidebar = document.getElementById('filterSidebar');
+        var close = document.getElementById('filterClose');
+        if (toggle && sidebar) {
+            toggle.addEventListener('click', function () { sidebar.classList.add('open'); });
+        }
+        if (close && sidebar) {
+            close.addEventListener('click', function () { sidebar.classList.remove('open'); });
+        }
+
+        // Custom sort dropdown
+        var form = document.getElementById('shopFilters');
+        document.querySelectorAll('.custom-select').forEach(function (cs) {
+            var btn = cs.querySelector('.custom-select-btn');
+            var input = cs.querySelector('input[type=hidden]');
+            var label = cs.querySelector('.cs-label');
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                cs.classList.toggle('open');
+            });
+            cs.querySelectorAll('.cs-option').forEach(function (opt) {
+                opt.addEventListener('click', function () {
+                    input.value = opt.dataset.value;
+                    label.textContent = opt.textContent;
+                    cs.classList.remove('open');
+                    if (form) form.submit();
+                });
+            });
+        });
+        document.addEventListener('click', function () {
+            document.querySelectorAll('.custom-select.open').forEach(function (cs) {
+                cs.classList.remove('open');
+            });
+        });
+    })();
+</script>
+{% endblock %}

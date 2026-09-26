@@ -1,0 +1,27 @@
+{% extends 'accounts/profile/_base.html' %}
+
+{% block title %}آدرس | hamidix.ir{% endblock %}
+
+{% block profile %}
+<h1 class="profile-title">{% if object %}ویرایش آدرس{% else %}افزودن آدرس{% endif %}</h1>
+<form method="post" class="profile-form">
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-grid">
+        <div class="input-group"><label>عنوان آدرس</label>{{ form.title }}{{ form.title.errors }}</div>
+        <div class="input-group"><label>نام گیرنده</label>{{ form.receiver }}{{ form.receiver.errors }}</div>
+        <div class="input-group"><label>شماره تماس</label>{{ form.phone }}{{ form.phone.errors }}</div>
+        <div class="input-group"><label>استان</label>{{ form.province }}{{ form.province.errors }}</div>
+        <div class="input-group"><label>شهر</label>{{ form.city }}{{ form.city.errors }}</div>
+        <div class="input-group"><label>کد پستی</label>{{ form.postal_code }}{{ form.postal_code.errors }}</div>
+    </div>
+    <div class="input-group"><label>نشانی کامل</label>{{ form.address }}{{ form.address.errors }}</div>
+    <label class="checkbox-row">{{ form.is_default }} این آدرس پیش‌فرض باشد</label>
+    <div class="form-actions">
+        <button type="submit" class="btn">ذخیره</button>
+        <a href="{% url 'accounts:addresses' %}" class="btn btn-outline">انصراف</a>
+    </div>
+</form>
+{% endblock %}
+

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}ورود و ثبت‌نام | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="card">
+        <h1>خوش آمدید</h1>
+        <p class="subtitle">وارد شوید یا ثبت‌نام کنید</p>
+
+        <div class="tabs">
+            <button type="button" class="tab-btn {% if active_tab == 'login' %}active{% endif %}" data-tab="login">ورود</button>
+            <button type="button" class="tab-btn {% if active_tab == 'register' %}active{% endif %}" data-tab="register">ثبت‌نام</button>
+        </div>
+
+        {# ---------- Login ---------- #}
+        <form method="post" id="loginForm" class="auth-form {% if active_tab != 'login' %}hidden{% endif %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="login">
+            {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+            {% if login_form.non_field_errors %}
+                <div class="form-errors">{{ login_form.non_field_errors }}</div>
+            {% endif %}
+            <div class="input-group">
+                <label>شماره تلفن</label>
+                {{ login_form.phone }}
+                {{ login_form.phone.errors }}
+            </div>
+            <div class="input-group">
+                <label>رمز عبور</label>
+                {{ login_form.password }}
+                {{ login_form.password.errors }}
+            </div>
+            <button type="submit" class="btn btn-block">ورود</button>
+            <div style="text-align:center; margin-top:12px; font-size:14px;">
+                <a href="{% url 'accounts:password_reset' %}">رمز عبور خود را فراموش کرده‌اید؟</a>
+            </div>
+        </form>
+
+        {# ---------- Register ---------- #}
+        <form method="post" id="registerForm" class="auth-form {% if active_tab != 'register' %}hidden{% endif %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="register">
+            {% if register_form.non_field_errors %}
+                <div class="form-errors">{{ register_form.non_field_errors }}</div>
+            {% endif %}
+            <div class="input-group">
+                <label>نام و نام خانوادگی</label>
+                {{ register_form.full_name }}
+                {{ register_form.full_name.errors }}
+            </div>
+            <div class="input-group">
+                <label>شماره تلفن</label>
+                {{ register_form.phone }}
+                {{ register_form.phone.errors }}
+            </div>
+            <div class="input-group">
+                <label>ایمیل</label>
+                {{ register_form.email }}
+                {{ register_form.email.errors }}
+            </div>
+            <div class="input-group">
+                <label>رمز عبور</label>
+                {{ register_form.password }}
+                {{ register_form.password.errors }}
+            </div>
+            <button type="submit" class="btn btn-block">ثبت‌نام</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+            document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+        });
+    });
+</script>
+{% endblock %}
+

@@ -1,0 +1,32 @@
+{% extends 'accounts/profile/_base.html' %}
+
+{% block title %}نظرات من | hamidix.ir{% endblock %}
+
+{% block profile %}
+<h1 class="profile-title">نظرات من</h1>
+{% if reviews %}
+<div class="review-list">
+    {% for review in reviews %}
+    <div class="review-item">
+        <div class="review-item-head">
+            <a href="{{ review.product.get_absolute_url }}" class="review-product">{{ review.product.name }}</a>
+            <span class="stars">{% for _ in "12345"|make_list %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+        </div>
+        <p class="review-text">{{ review.text }}</p>
+        <div class="review-foot">
+            <span class="review-date">{{ review.created_at|date:'Y/m/d' }}</span>
+            {% if review.is_approved %}
+                <span class="review-status approved"><i class="fas fa-check-circle"></i> تأیید شده</span>
+            {% else %}
+                <span class="review-status pending"><i class="fas fa-clock"></i> در انتظار تأیید</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% include 'shop/_pagination.html' %}
+{% else %}
+    <div class="empty-state"><p>هنوز نظری ثبت نکرده‌اید.</p></div>
+{% endif %}
+{% endblock %}
+

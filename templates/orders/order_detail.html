@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+
+{% block title %}کد سفارش {{ order.pk }} | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container page-wrap">
+    <h1 class="page-title">جزئیات سفارش</h1>
+    <p class="order-code-line">کد سفارش : <span>{{ order.pk }}</span></p>
+
+    {% if order.status == 'paid' %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <div>
+            <strong>پرداخت موفق — سفارش شما ثبت شد</strong>
+            {% if order.ref_id %}<br>شماره پیگیری زرین‌پال: <strong>{{ order.ref_id }}</strong>{% endif %}
+        </div>
+    </div>
+    {% elif order.status == 'pending' %}
+    <div class="alert alert-warning">
+        <i class="fas fa-clock"></i>
+        <div>
+            <strong>در انتظار پرداخت</strong> —
+            <a href="{% url 'orders:payment_start' pk=order.pk %}">پرداخت آنلاین</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if order.tracking_code %}
+    <div class="alert alert-tracking">
+        <i class="fas fa-truck-fast"></i>
+        <div>
+            <strong>سفارش شما ارسال شد</strong><br>
+            کد رهگیری پستی: <span class="tracking-code">{{ order.tracking_code }}</span>
+            <p class="tracking-hint">این کد را در سایت پست یا تیپاکس وارد کنید تا وضعیت مرسوله را پیگیری کنید.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="order-info-card">
+        <div class="order-info-grid">
+            <div class="order-info-item">
+                <label>کد سفارش</label>
+                <span>{{ order.pk }}</span>
+            </div>
+            <div class="order-info-item">
+                <label>گیرنده</label>
+                <span>{{ order.full_name }}</span>
+            </div>
+            <div class="order-info-item">
+                <label>شماره تماس</label>
+                <span>{{ order.phone }}</span>
+            </div>
+            <div class="order-info-item">
+                <label>وضعیت</label>
+                <span class="order-status {{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+            <div class="order-info-item">
+                <label>تاریخ ثبت</label>
+                <span>{{ order.created_at|date:'Y/m/d H:i' }}</span>
+            </div>
+            <div class="order-info-item" style="grid-column: 1/-1">
+                <label>آدرس</label>
+                <span>{{ order.address }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-info-card" style="padding: 0; overflow: hidden;">
+        <table class="order-items-table">
+            <thead>
+                <tr>
+                    <th>محصول</th>
+                    <th>قیمت واحد</th>
+                    <th>تعداد</th>
+                    <th>جمع</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.price|currency|fa_num }} ریال</td>
+                    <td>{{ item.quantity }}</td>
+                    <td style="font-weight:600; color:var(--primary)">{{ item.line_total|currency|fa_num }} ریال</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="order-totals">
+        <div class="summary-row"><span>جمع کالاها</span><span>{{ order.items_total|currency|fa_num }} ریال</span></div>
+        {% if order.discount %}
+        <div class="summary-row discount-row">
+            <span>تخفیف{% if order.coupon %} ({{ order.coupon.code }}){% endif %}</span>
+            <span>− {{ order.discount|currency|fa_num }} ریال</span>
+        </div>
+        {% endif %}
+        <div class="summary-row total-row">
+            <span>مبلغ پرداختی</span>
+            <span>{{ order.total|currency|fa_num }} ریال</span>
+        </div>
+    </div>
+
+    <div class="order-actions">
+        <a href="{% url 'shop:home' %}" class="btn btn-outline">
+            <i class="fas fa-home"></i> بازگشت به خانه
+        </a>
+        <a href="{% url 'shop:product_list' %}" class="btn">
+            <i class="fas fa-box-open"></i> ادامه خرید
+        </a>
+    </div>
+</div>
+{% endblock %}
+

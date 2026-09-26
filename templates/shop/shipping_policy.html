@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}رویه ارسال سفارش | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container page-wrap">
+    <h1 class="page-title">رویه ارسال سفارش</h1>
+
+    <div class="info-steps">
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-box-open"></i></div>
+                <h3>بسته‌بندی</h3>
+            </div>
+            <p>تمام محصولات با بسته‌بندی مناسب و ایمن ارسال می‌شوند تا در حین حمل‌ونقل آسیبی نبینند.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-truck"></i></div>
+                <h3>روش ارسال</h3>
+            </div>
+            <p>ارسال سفارشات از طریق پست پیشتاز یا تیپاکس انجام می‌شود. روش ارسال بسته به موقعیت جغرافیایی و حجم محصول تعیین می‌گردد.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-clock"></i></div>
+                <h3>زمان ارسال</h3>
+            </div>
+            <p>سفارشات معمولاً ظرف <strong>۱ تا ۳ روز کاری</strong> پس از تأیید پرداخت ارسال می‌شوند. زمان تحویل بسته به شهر مقصد ۲ تا ۷ روز کاری است.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-map-location-dot"></i></div>
+                <h3>پیگیری مرسوله</h3>
+            </div>
+            <p>پس از ارسال، کد رهگیری مرسوله از طریق پیام‌رسان‌های روبیکا، بله یا ایتا به شما اطلاع‌رسانی می‌شود.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-coins"></i></div>
+                <h3>هزینه ارسال</h3>
+            </div>
+            <p>هزینه ارسال بر اساس وزن بسته و مقصد محاسبه می‌شود و در مرحله تکمیل سفارش به اطلاع شما می‌رسد.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-rotate-left"></i></div>
+                <h3>مرجوعی کالا</h3>
+            </div>
+            <p>در صورت دریافت کالای معیوب یا اشتباه، ظرف <strong>۷ روز</strong> از تاریخ دریافت با ما تماس بگیرید تا فرآیند مرجوعی انجام شود.</p>
+        </div>
+
+    </div>
+
+    <div class="info-note">
+        <i class="fas fa-headset"></i>
+        <div class="info-note-content">
+            {% include "shop/_support_note.html" with lead="برای پیگیری سفارش یا اطلاع از وضعیت ارسال" %}
+            <a href="{% url 'shop:contact' %}" class="info-note-btn"><i class="fas fa-headset"></i> مشاهدهٔ همهٔ راه‌های ارتباطی</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

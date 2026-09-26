@@ -1,0 +1,36 @@
+{% extends 'accounts/profile/_base.html' %}
+
+{% block title %}آدرس‌های من | hamidix.ir{% endblock %}
+
+{% block profile %}
+<div class="profile-head-row">
+    <h1 class="profile-title">آدرس‌های من</h1>
+    <a href="{% url 'accounts:address_add' %}" class="btn"><i class="fas fa-plus"></i> آدرس جدید</a>
+</div>
+
+{% if addresses %}
+<div class="address-grid">
+    {% for addr in addresses %}
+    <div class="address-card{% if addr.is_default %} is-default{% endif %}">
+        <div class="address-card-head">
+            <strong><i class="fas fa-location-dot"></i> {{ addr.title }}</strong>
+            {% if addr.is_default %}<span class="badge-default">پیش‌فرض</span>{% endif %}
+        </div>
+        <p class="address-line">{{ addr.full_line }}</p>
+        <p class="address-meta">گیرنده: {{ addr.receiver }} — {{ addr.phone }}
+            {% if addr.postal_code %}<br>کد پستی: {{ addr.postal_code }}{% endif %}</p>
+        <div class="address-actions">
+            <a href="{% url 'accounts:address_edit' addr.pk %}" class="btn btn-outline btn-sm">ویرایش</a>
+            <a href="{% url 'accounts:address_delete' addr.pk %}" class="btn btn-outline btn-sm danger">حذف</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+    <div class="empty-state">
+        <p>هنوز آدرسی ثبت نکرده‌اید.</p>
+        <a href="{% url 'accounts:address_add' %}" class="btn">افزودن آدرس</a>
+    </div>
+{% endif %}
+{% endblock %}
+

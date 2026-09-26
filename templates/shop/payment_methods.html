@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}شیوه‌های پرداخت | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container page-wrap">
+    <h1 class="page-title">شیوه‌های پرداخت</h1>
+
+    <div class="info-steps">
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-credit-card"></i></div>
+                <h3>پرداخت آنلاین (درگاه زرین‌پال)</h3>
+            </div>
+            <p>پرداخت از طریق درگاه امن زرین‌پال با تمام کارت‌های بانکی عضو شبکه شتاب امکان‌پذیر است. پس از تکمیل سفارش به صفحه پرداخت هدایت می‌شوید.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-shield-halved"></i></div>
+                <h3>امنیت پرداخت</h3>
+            </div>
+            <p>تمام تراکنش‌ها از طریق پروتکل رمزنگاری SSL انجام می‌شود. اطلاعات کارت بانکی شما در هیچ مرحله‌ای در سرورهای ما ذخیره نمی‌شود.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-receipt"></i></div>
+                <h3>شماره پیگیری</h3>
+            </div>
+            <p>پس از پرداخت موفق، شماره پیگیری تراکنش زرین‌پال در صفحه سفارش شما نمایش داده می‌شود و قابل استناد است.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-arrow-rotate-left"></i></div>
+                <h3>بازگشت وجه</h3>
+            </div>
+            <p>در صورت کسر وجه بدون ثبت سفارش، مبلغ ظرف <strong>۷۲ ساعت</strong> به حساب بانکی شما بازگشت داده می‌شود. برای پیگیری با ما تماس بگیرید.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-icon"><i class="fas fa-ban"></i></div>
+                <h3>پرداخت در محل</h3>
+            </div>
+            <p>در حال حاضر پرداخت در محل تحویل امکان‌پذیر نیست. تمام سفارشات باید از طریق درگاه آنلاین پرداخت شوند.</p>
+        </div>
+
+    </div>
+
+    <div class="info-note">
+        <i class="fas fa-headset"></i>
+        <div class="info-note-content">
+            {% include "shop/_support_note.html" with lead="در صورت بروز مشکل در پرداخت یا نیاز به پیگیری تراکنش" %}
+            <a href="{% url 'shop:contact' %}" class="info-note-btn"><i class="fas fa-headset"></i> مشاهدهٔ همهٔ راه‌های ارتباطی</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+
+{% block title %}تماس با ما | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container page-wrap">
+    <h1 class="page-title">تماس با ما</h1>
+    <p class="page-intro">
+        برای ثبت سفارش، پیگیری مرسوله، مشاوره خرید یا هر پرسش دیگری از راه‌های زیر با ما در ارتباط باشید.
+        کارشناسان Hamidix در سریع‌ترین زمان ممکن پاسخگوی شما خواهند بود.
+    </p>
+
+    {# ─── Phone highlight ─── #}
+    {% if store.phone %}
+    <a href="tel:{{ store.phone }}" class="contact-phone">
+        <div class="contact-phone-icon"><i class="fas fa-phone"></i></div>
+        <div>
+            <span class="contact-phone-label">تماس تلفنی</span>
+            <strong class="contact-phone-num">{{ store.phone|fa_num }}</strong>
+        </div>
+    </a>
+    {% endif %}
+
+    {# ─── Postal address ─── #}
+    {% if store.address %}
+    <div class="info-note">
+        <i class="fas fa-location-dot"></i>
+        <span>{{ store.address }}</span>
+    </div>
+    {% endif %}
+
+    {# ─── Channels (each card is shown only when its handle is configured) ─── #}
+    {% if store.telegram_support or store.telegram_channel or store.bale or store.rubika or store.instagram %}
+    <h2 class="section-title">شبکه‌های اجتماعی و پیام‌رسان‌ها</h2>
+    <div class="channel-grid">
+        {% if store.telegram_support %}
+        <a href="https://t.me/{{ store.telegram_support }}" target="_blank" rel="noopener" class="channel-card tg">
+            <i class="fab fa-telegram"></i>
+            <div>
+                <span>پشتیبانی تلگرام</span>
+                <small>{{ store.telegram_support }}@</small>
+            </div>
+        </a>
+        {% endif %}
+        {% if store.telegram_channel %}
+        <a href="https://t.me/{{ store.telegram_channel }}" target="_blank" rel="noopener" class="channel-card tg">
+            <i class="fas fa-bullhorn"></i>
+            <div>
+                <span>کانال تلگرام</span>
+                <small>{{ store.telegram_channel }}@</small>
+            </div>
+        </a>
+        {% endif %}
+        {% if store.bale %}
+        <a href="https://ble.ir/{{ store.bale }}" target="_blank" rel="noopener" class="channel-card bale">
+            <i class="fas fa-comment-dots"></i>
+            <div>
+                <span>بله</span>
+                <small>{{ store.bale }}</small>
+            </div>
+        </a>
+        {% endif %}
+        {% if store.rubika %}
+        <a href="https://rubika.ir/{{ store.rubika }}" target="_blank" rel="noopener" class="channel-card rubika">
+            <i class="fas fa-comments"></i>
+            <div>
+                <span>روبیکا</span>
+                <small>{{ store.rubika }}@</small>
+            </div>
+        </a>
+        {% endif %}
+        {% if store.instagram %}
+        <a href="https://instagram.com/{{ store.instagram }}" target="_blank" rel="noopener" class="channel-card insta">
+            <i class="fab fa-instagram"></i>
+            <div>
+                <span>اینستاگرام</span>
+                <small>{{ store.instagram }}</small>
+            </div>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="info-note">
+        <i class="fas fa-clock"></i>
+        <span>ساعات پاسخگویی: شنبه تا پنجشنبه، ۹ صبح تا ۹ شب. پیام شما در سریع‌ترین زمان ممکن بررسی و پاسخ داده می‌شود.</span>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}نحوه ثبت سفارش | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container page-wrap">
+    <h1 class="page-title">نحوه ثبت سفارش</h1>
+
+    <div class="info-steps">
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-number">۱</div>
+                <h3>انتخاب محصول</h3>
+            </div>
+            <p>محصول مورد نظر خود را از فهرست محصولات یا از طریق جستجو پیدا کنید. با کلیک روی محصول، مشخصات کامل، تصاویر و قیمت آن را مشاهده کنید.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-number">۲</div>
+                <h3>افزودن به سبد خرید</h3>
+            </div>
+            <p>روی دکمه «افزودن به سبد خرید» کلیک کنید. می‌توانید چند محصول را به سبد خرید اضافه کنید و در نهایت یک سفارش ثبت کنید.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-number">۳</div>
+                <h3>ورود به حساب کاربری</h3>
+            </div>
+            <p>برای تکمیل خرید باید وارد حساب خود شوید. اگر حساب ندارید، ثبت‌نام سریع و رایگان است.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-number">۴</div>
+                <h3>انتخاب آدرس تحویل</h3>
+            </div>
+            <p>آدرس تحویل سفارش را انتخاب یا وارد کنید. می‌توانید چند آدرس ذخیره کنید و در هر خرید یکی را انتخاب نمایید.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-number">۵</div>
+                <h3>پرداخت آنلاین</h3>
+            </div>
+            <p>پس از تأیید سفارش به درگاه پرداخت امن زرین‌پال هدایت می‌شوید. پرداخت با تمام کارت‌های بانکی عضو شتاب امکان‌پذیر است.</p>
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-header">
+                <div class="step-number">۶</div>
+                <h3>تأیید سفارش</h3>
+            </div>
+            <p>پس از پرداخت موفق، شماره پیگیری سفارش صادر می‌شود. می‌توانید وضعیت سفارش را از بخش پروفایل پیگیری کنید.</p>
+        </div>
+
+    </div>
+
+    <div class="info-note">
+        <i class="fas fa-headset"></i>
+        <div class="info-note-content">
+            {% include "shop/_support_note.html" with lead="در صورت بروز مشکل در ثبت سفارش" %}
+            <a href="{% url 'shop:contact' %}" class="info-note-btn"><i class="fas fa-headset"></i> مشاهدهٔ همهٔ راه‌های ارتباطی</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

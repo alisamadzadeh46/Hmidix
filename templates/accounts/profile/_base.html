@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container page-wrap">
+    <div class="profile-layout">
+        <aside class="profile-sidebar">
+            <div class="profile-user">
+                <div class="profile-avatar"><i class="fas fa-user"></i></div>
+                <div>
+                    <strong>{{ user.get_short_name }}</strong>
+                    <span>{{ user.phone }}</span>
+                    <span class="account-type {% if user.is_colleague %}colleague{% endif %}">
+                        {% if user.is_colleague %}<i class="fas fa-user-tie"></i> کاربر همکار{% else %}<i class="fas fa-user"></i> کاربر عادی{% endif %}
+                    </span>
+                </div>
+            </div>
+            <nav class="profile-nav">
+                {% with url=request.resolver_match.url_name %}
+                <a href="{% url 'accounts:profile' %}" class="{% if url == 'profile' %}active{% endif %}">
+                    <i class="fas fa-gauge-high"></i> پیشخوان</a>
+                <a href="{% url 'accounts:orders' %}" class="{% if url == 'orders' %}active{% endif %}">
+                    <i class="fas fa-box"></i> سفارش‌های من</a>
+                <a href="{% url 'accounts:addresses' %}" class="{% if 'address' in url %}active{% endif %}">
+                    <i class="fas fa-location-dot"></i> آدرس‌های من</a>
+                <a href="{% url 'accounts:reviews' %}" class="{% if url == 'reviews' %}active{% endif %}">
+                    <i class="fas fa-comment-dots"></i> نظرات من</a>
+                <a href="{% url 'accounts:account' %}" class="{% if url == 'account' %}active{% endif %}">
+                    <i class="fas fa-user-gear"></i> اطلاعات حساب</a>
+                <a href="{% url 'accounts:logout' %}" class="logout">
+                    <i class="fas fa-right-from-bracket"></i> خروج</a>
+                {% endwith %}
+            </nav>
+        </aside>
+
+        <section class="profile-content">
+            {% block profile %}{% endblock %}
+        </section>
+    </div>
+</div>
+{% endblock %}
+

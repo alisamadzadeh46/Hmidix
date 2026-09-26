@@ -1,0 +1,3 @@
+{% load shop_extras %}
+{# Support hint shared by the help pages. Expects `lead`; only configured channels are shown. #}
+<span>{{ lead }}{% if store.phone %}، با شماره <strong>{{ store.phone|fa_num }}</strong> تماس بگیرید{% endif %}{% if store.telegram_support %}{% if store.phone %} یا{% else %}،{% endif %} در تلگرام به آیدی <strong>{{ store.telegram_support }}@</strong> پیام دهید{% endif %}{% if not store.phone and not store.telegram_support %}، از طریق راه‌های ارتباطی با ما در تماس باشید{% endif %}.</span>

@@ -1,0 +1,152 @@
+{% load static shop_extras %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}فروشگاه محصولات دیجیتال | hamidix.ir{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=20260722">
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<header class="header">
+    <div class="header-main">
+        <div class="container">
+            <a href="{% url 'shop:home' %}" class="logo">
+                <img src="{% static 'images/1.jpg' %}" alt="hamidix">
+                <span>محصولات دیجیتال</span>
+            </a>
+
+            <form class="search-box" action="{% url 'shop:product_list' %}" method="get">
+                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="جستجوی محصولات ...">
+                <button type="submit"><i class="fas fa-search"></i> جستجو</button>
+            </form>
+
+            <div class="user-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'accounts:profile' %}" class="user-action-item">
+                        <i class="fas fa-user"></i><span>{{ user.get_short_name }}</span>
+                    </a>
+                    <a href="{% url 'accounts:logout' %}" class="user-action-item">
+                        <i class="fas fa-right-from-bracket"></i><span>خروج</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="user-action-item">
+                        <i class="fas fa-user"></i><span>ورود | ثبت‌نام</span>
+                    </a>
+                {% endif %}
+                <a href="{% url 'orders:cart' %}" class="user-action-item cart-icon">
+                    <i class="fas fa-shopping-cart"></i><span>سبد خرید</span>
+                    <span class="cart-count" id="cartCount">{{ cart_count }}</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="container">
+            <div class="nav-cats" id="navCats">
+                <button type="button" class="nav-cats-btn" id="navCatsBtn">
+                    <i class="fas fa-bars"></i>
+                    <span>دسته‌بندی محصولات</span>
+                    <i class="fas fa-chevron-down caret"></i>
+                </button>
+                <div class="nav-cats-menu">
+                    {% for cat in nav_categories %}
+                        <a href="{{ cat.get_absolute_url }}" class="nav-cats-item">
+                            {% if cat.icon %}<i class="fas {{ cat.icon }}"></i>{% else %}<i class="fas fa-tag"></i>{% endif %}
+                            <span>{{ cat.name }}</span>
+                            <i class="fas fa-angle-left arrow"></i>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <ul class="nav-list">
+                <li><a href="{% url 'shop:product_list' %}" class="nav-link"><i class="fas fa-store"></i> همه محصولات</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+        <div class="msg {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-top">
+            <div class="footer-column">
+                <h3>درباره ما</h3>
+                <ul class="footer-links">
+                    <li><a href="{% url 'shop:about' %}">درباره فروشگاه</a></li>
+                    <li><a href="{% url 'shop:contact' %}">تماس با ما</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>راهنمای خرید</h3>
+                <ul class="footer-links">
+                    <li><a href="{% url 'shop:how_to_order' %}">نحوه ثبت سفارش</a></li>
+                    <li><a href="{% url 'shop:shipping' %}">رویه ارسال سفارش</a></li>
+                    <li><a href="{% url 'shop:payment_methods' %}">شیوه‌های پرداخت</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>با ما در ارتباط باشید</h3>
+                <ul class="footer-links">
+                    {% if store.phone %}<li><a href="tel:{{ store.phone }}"><i class="fas fa-phone"></i> {{ store.phone|fa_num }}</a></li>{% endif %}
+                    {% if store.telegram_support %}<li><a href="https://t.me/{{ store.telegram_support }}" target="_blank" rel="noopener"><i class="fab fa-telegram"></i> پشتیبانی تلگرام</a></li>{% endif %}
+                    {% if store.instagram %}<li><a href="https://instagram.com/{{ store.instagram }}" target="_blank" rel="noopener"><i class="fab fa-instagram"></i> اینستاگرام</a></li>{% endif %}
+                    {% if store.rubika %}<li><a href="https://rubika.ir/{{ store.rubika }}" target="_blank" rel="noopener"><i class="fas fa-comments"></i> روبیکا</a></li>{% endif %}
+                    {% if store.bale %}<li><a href="https://ble.ir/{{ store.bale }}" target="_blank" rel="noopener"><i class="fas fa-comment-dots"></i> بله</a></li>{% endif %}
+                    <li><a href="{% url 'shop:contact' %}"><i class="fas fa-headset"></i> همهٔ راه‌های ارتباطی</a></li>
+                </ul>
+            </div>
+            {% if enamad %}
+            <div class="footer-column footer-trust-seals">
+                <h3>نمادهای اعتماد</h3>
+                <div class="trust-seals">
+                    <a referrerpolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id={{ enamad.id }}&Code={{ enamad.code }}">
+                        <img referrerpolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id={{ enamad.id }}&Code={{ enamad.code }}" alt="نماد اعتماد الکترونیکی" style="cursor:pointer" code="{{ enamad.code }}">
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="footer-bottom">
+            <p>کلیه حقوق این وب‌سایت برای فروشگاه Hamidix.ir محفوظ می‌باشد. ©</p>
+            <p class="footer-credit">طراحی و توسعه توسط
+                <a href="https://github.com/alisamadzadeh46" target="_blank" rel="noopener">alisamadzadeh</a>
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script src="{% static 'js/main.js' %}?v=20260722"></script>
+<script>
+    (function () {
+        var cats = document.getElementById('navCats');
+        var btn = document.getElementById('navCatsBtn');
+        if (!cats || !btn) return;
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            cats.classList.toggle('open');
+        });
+        document.addEventListener('click', function (e) {
+            if (!cats.contains(e.target)) cats.classList.remove('open');
+        });
+    })();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
+

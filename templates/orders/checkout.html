@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load shop_extras %}
+
+{% block title %}تکمیل خرید | hamidix.ir{% endblock %}
+
+{% block content %}
+<div class="container page-wrap">
+    <h1 class="page-title">تکمیل خرید</h1>
+
+    <div class="checkout-grid">
+        <div class="checkout-main">
+            {% if addresses %}
+            {# ---------- Saved addresses ---------- #}
+            <div class="card checkout-card">
+                <h3><i class="fas fa-location-dot"></i> انتخاب آدرس تحویل</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="address-radio-list">
+                        {% for addr in addresses %}
+                        <label class="address-radio">
+                            <input type="radio" name="address_id" value="{{ addr.pk }}" {% if addr.is_default %}checked{% endif %}>
+                            <div class="address-radio-body">
+                                <strong>{{ addr.title }} {% if addr.is_default %}<span class="badge-default">پیش‌فرض</span>{% endif %}</strong>
+                                <span>{{ addr.full_line }}</span>
+                                <span class="muted">گیرنده: {{ addr.receiver }} — {{ addr.phone }}</span>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-block">ادامه و پرداخت <i class="fas fa-arrow-left"></i></button>
+                </form>
+                <a href="{% url 'accounts:address_add' %}?next=/checkout/" class="add-address-link">
+                    <i class="fas fa-plus-circle"></i> افزودن آدرس جدید
+                </a>
+            </div>
+            {% else %}
+            {# ---------- No address — prompt to add ---------- #}
+            <div class="card checkout-card no-address-card">
+                <i class="fas fa-map-marker-alt no-address-icon"></i>
+                <h3>آدرسی ثبت نشده</h3>
+                <p>برای تکمیل خرید، ابتدا یک آدرس تحویل اضافه کنید.</p>
+                <a href="{% url 'accounts:address_add' %}?next=/checkout/" class="btn">
+                    <i class="fas fa-plus"></i> افزودن آدرس
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        {# ---------- Order summary ---------- #}
+        <aside class="cart-summary-col">
+            <div class="summary-box">
+                <h3>خلاصه سفارش</h3>
+                <div class="summary-items">
+                    {% for item in cart %}
+                    <div class="summary-item-row">
+                        <span>{{ item.product.name|truncatechars:30 }} × {{ item.quantity }}</span>
+                        <span>{{ item.line_total|currency|fa_num }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="summary-row">
+                    <span>جمع کالاها</span>
+                    <span>{{ cart.subtotal|currency|fa_num }} ریال</span>
+                </div>
+                {% if cart.discount %}
+                <div class="summary-row discount-row">
+                    <span>تخفیف ({{ cart.coupon.code }})</span>
+                    <span>− {{ cart.discount|currency|fa_num }} ریال</span>
+                </div>
+                {% endif %}
+                <div class="summary-row total-row">
+                    <span>مبلغ قابل پرداخت</span>
+                    <span>{{ cart.total|currency|fa_num }} ریال</span>
+                </div>
+                <a href="{% url 'orders:cart' %}" class="btn btn-outline btn-block" style="margin-top:8px;"><i class="fas fa-cart-shopping"></i> ویرایش سبد خرید</a>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
